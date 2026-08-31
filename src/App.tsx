@@ -18,12 +18,12 @@ export function HomePage() {
   const modal = useModal();
   const withPhotos = products.filter((p) => p.images.length);
   const heroPhoto =
-    withPhotos.find((p) => p.id === "m-101r") ||
+    withPhotos.find((p) => p.id === "m-105h") ||
     withPhotos.find((p) => p.category === "Платья") ||
     withPhotos[0];
   const aboutPhoto =
-    withPhotos.find((p) => p.id === "m-125b") ||
-    withPhotos.find((p) => p.category === "Сарафаны") ||
+    withPhotos.find((p) => p.id === "m-101c") ||
+    withPhotos.find((p) => p.category === "Платья") ||
     withPhotos[1] ||
     withPhotos[0];
 
