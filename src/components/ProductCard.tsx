@@ -1,0 +1,26 @@
+import { formatPrice } from "../lib/formatPrice";
+import { publicUrl } from "../lib/publicUrl";
+import type { Product } from "../data/types";
+
+export function ProductCard({ product, onOpen }: { product: Product; onOpen: (p: Product) => void }) {
+  const img = product.images[0];
+  const img2 = product.images[1];
+  return (
+    <button type="button" className="product-card" onClick={() => onOpen(product)}>
+      <div className="product-media">
+        {img ? (
+          <img className="main" src={publicUrl(img)} alt={`${product.name}, артикул ${product.article}`} width={480} height={600} loading="lazy" />
+        ) : (
+          <div className="no-photo">Нет фото</div>
+        )}
+        {img2 ? <img className="second" src={publicUrl(img2)} alt="" width={480} height={600} loading="lazy" /> : null}
+        <span className="product-more">Подробнее</span>
+      </div>
+      <div className="product-meta">
+        <h3>{product.name}</h3>
+        <p className="price">{formatPrice(product.priceRetail)}</p>
+        {product.sizes.length ? <p className="sizes">{product.sizes.join(" · ")}</p> : null}
+      </div>
+    </button>
+  );
+}
