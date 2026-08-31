@@ -1,0 +1,26 @@
+[
+  {
+    "id": "kostyumy",
+    "name": "Костюмы",
+    "count": 1,
+    "image": "/images/products/mtk-104/01.webp"
+  },
+  {
+    "id": "pizhamy",
+    "name": "Пижамы для дома",
+    "count": 12,
+    "image": "/images/products/mtk-111-b/01.webp"
+  },
+  {
+    "id": "platya",
+    "name": "Платья",
+    "count": 21,
+    "image": "/images/products/m-101r/01.webp"
+  },
+  {
+    "id": "sarafany",
+    "name": "Сарафаны",
+    "count": 4,
+    "image": "/images/products/m-125b/01.webp"
+  }
+]
