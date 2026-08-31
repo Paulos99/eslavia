@@ -7,9 +7,7 @@ export function Footer() {
     <footer className="footer">
       <div className="container footer-grid">
         <div>
-          <div className="logo">
-            <img src={publicUrl("/brand/logo.svg")} alt="Эславия" width={220} height={52} />
-          </div>
+          <div className="logo">ТАИСИЯ</div>
           <p className="footer-tagline">{company.tagline}</p>
         </div>
         <nav className="footer-col" aria-label="Подвал">
@@ -28,13 +26,13 @@ export function Footer() {
         <div className="footer-col">
           <p className="footer-heading">Мессенджеры</p>
           <a href={contacts.whatsapp}>WhatsApp</a>
-          <a href={contacts.telegramBot ?? contacts.telegram}>Telegram</a>
+          <a href={contacts.telegram}>Telegram</a>
           <a href={contacts.viber}>Viber</a>
         </div>
       </div>
       <div className="container footer-bottom">
         <p>
-          {company.name} © {company.year} · ИНН {company.inn}
+          Таисия © {company.year} · ИНН {company.inn}
         </p>
       </div>
     </footer>

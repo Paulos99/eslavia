@@ -7,7 +7,7 @@ export function About({ photo }: { photo?: Product }) {
     <section className="section about-section" id="about">
       <div className="container about-grid">
         <div>
-          <p className="eyebrow">Эславия</p>
+          <p className="eyebrow">О бренде</p>
           <h2 className="section-title">О компании</h2>
           <p className="section-lead">{company.about}</p>
           <ul className="facts">

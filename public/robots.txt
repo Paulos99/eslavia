@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://paulos99.github.io/taisiya/sitemap.xml
+Sitemap: https://taisiy.ru/sitemap.xml

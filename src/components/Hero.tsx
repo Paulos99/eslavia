@@ -6,9 +6,9 @@ export function Hero({ photo }: { photo?: Product }) {
     <section className="hero" id="top">
       <div className="container hero-grid">
         <div className="hero-copy reveal">
-          <p className="eyebrow">Эславия · женский трикотаж</p>
+          <p className="eyebrow">Женский трикотаж · Иваново</p>
           <h1>
-            Нежность натуральных тканей <em>на каждый день</em>
+            Комфорт натуральных тканей <em>на каждый день</em>
           </h1>
           <p className="hero-lead">
             Одежда для дома и отдыха, широкий размерный ряд от 42 до 70. Смотрите каталог или запросите оптовый прайс.
