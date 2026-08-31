@@ -36,9 +36,12 @@ export type Contacts = {
   phoneRaw: string;
   email: string;
   address: string;
+  hoursWeekdays?: string;
+  hoursWeekend?: string;
   whatsapp: string;
   viber: string;
   telegram: string;
+  telegramBot?: string;
 };
 
 export type SizeGuide = {

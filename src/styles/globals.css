@@ -225,11 +225,14 @@ p {
 
 .logo {
   justify-self: start;
-  font-family: var(--font-serif);
-  font-size: 26px;
-  letter-spacing: 0.28em;
-  font-weight: 500;
-  padding-right: 0.28em;
+  display: block;
+  line-height: 0;
+}
+
+.logo img {
+  display: block;
+  width: min(220px, 42vw);
+  height: auto;
 }
 
 .nav {

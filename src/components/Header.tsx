@@ -25,14 +25,17 @@ export function Header() {
     <>
       <div className="topbar">
         <div className="container topbar-inner">
-          <span>Иваново · опт и розница</span>
+          <span>
+            Москва · {contacts.hoursWeekdays}
+            {contacts.hoursWeekend ? ` · ${contacts.hoursWeekend}` : ""}
+          </span>
           <a href={`tel:+${contacts.phoneRaw}`}>{contacts.phone}</a>
         </div>
       </div>
       <header className={`header ${scrolled ? "is-scrolled" : ""}`}>
         <div className="container header-inner">
-          <a className="logo" href={publicUrl("/#top")}>
-            ТАИСИЯ
+          <a className="logo" href={publicUrl("/#top")} aria-label="Эславия — на главную">
+            <img src={publicUrl("/brand/logo.svg")} alt="Эславия" width={220} height={52} />
           </a>
           <nav className="nav" aria-label="Основная">
             {links.map((l) => (

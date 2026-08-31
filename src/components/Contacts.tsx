@@ -11,13 +11,15 @@ export function Contacts() {
           <div className="contact-lines">
             <a href={`tel:+${contacts.phoneRaw}`}>{contacts.phone}</a>
             <a href={`mailto:${contacts.email}`}>{contacts.email}</a>
+            {contacts.hoursWeekdays ? <span>{contacts.hoursWeekdays}</span> : null}
+            {contacts.hoursWeekend ? <span>{contacts.hoursWeekend}</span> : null}
             <span>ИНН {company.inn}</span>
           </div>
           <div className="hero-actions">
             <a className="btn btn-ghost" href={contacts.whatsapp}>
               WhatsApp
             </a>
-            <a className="btn btn-ghost" href={contacts.telegram}>
+            <a className="btn btn-ghost" href={contacts.telegramBot ?? contacts.telegram}>
               Telegram
             </a>
             <a className="btn btn-ghost" href={contacts.viber}>
@@ -32,7 +34,7 @@ export function Contacts() {
             <li>
               Доставка ТК {delivery.carriers.join(", ")} — за счёт покупателя. До терминала — {delivery.toTerminal}.
             </li>
-            <li>Оплата в точке выдачи транспортной компании или по адресу самовывоза.</li>
+            <li>Оплата в магазине, в точке выдачи транспортной компании или онлайн.</li>
           </ul>
         </div>
       </div>
