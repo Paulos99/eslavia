@@ -1,7 +1,9 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
+import { CheckCircle2, FileDown } from "lucide-react";
 import { submitLead } from "../lib/submitLead";
 import { publicUrl } from "../lib/publicUrl";
+import { validateLeadContact } from "../lib/leadContact";
 
 export function Wholesale() {
   const [name, setName] = useState("");
@@ -14,15 +16,27 @@ export function Wholesale() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    setPending(true);
-    const result = await submitLead({ name, contact, consent });
-    setPending(false);
-    if (!result.ok) {
-      setOk(false);
-      setError(result.error || "Не удалось отправить заявку");
+    if (!consent) {
+      setError("Нужно согласие на обработку персональных данных");
       return;
     }
-    setOk(true);
+    const contactCheck = validateLeadContact(contact);
+    if (!contactCheck.ok) {
+      setError(contactCheck.error);
+      return;
+    }
+    setPending(true);
+    try {
+      const result = await submitLead({ name, contact, consent });
+      if (!result.ok) {
+        setOk(false);
+        setError(result.error || "Не удалось отправить заявку");
+        return;
+      }
+      setOk(true);
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
@@ -35,12 +49,15 @@ export function Wholesale() {
             <p className="section-lead">Получите актуальный оптовый прайс и информацию для заказа. Скидки при сумме заказа от 5000 ₽.</p>
           </div>
           {ok ? (
-            <div className="success-box">
-              <h3 className="section-title section-title-s">Спасибо!</h3>
-              <p className="success-lead">Прайс готов.</p>
-              <a className="btn btn-light" href={publicUrl("/prices/optovyy-prays.pdf")} download>
+            <div className="success-box" role="status" aria-live="polite">
+              <CheckCircle2 className="success-icon" size={28} strokeWidth={1.6} aria-hidden />
+              <h3 className="section-title section-title-s">Контакт отправлен</h3>
+              <p className="success-lead">Заявка уже у нас. Мы свяжемся с вами и подтвердим условия заказа.</p>
+              <a className="btn btn-light" href={publicUrl("/prices/optovyy-prays.pdf")} download="optovyy-prays-eslavia.pdf">
+                <FileDown size={16} strokeWidth={1.8} aria-hidden />
                 Скачать оптовый прайс
               </a>
+              <p className="success-note">PDF пока черновик — актуальные цены подтвердим в переписке.</p>
             </div>
           ) : (
             <form className="form" onSubmit={onSubmit}>
@@ -50,17 +67,24 @@ export function Wholesale() {
               </label>
               <label className="field">
                 <span>Телефон / Telegram / e-mail</span>
-                <input value={contact} onChange={(e) => setContact(e.target.value)} required autoComplete="tel" />
+                <input
+                  value={contact}
+                  onChange={(e) => setContact(e.target.value)}
+                  required
+                  autoComplete="tel"
+                  inputMode="tel"
+                  placeholder="+7 999 123-45-67"
+                />
               </label>
               <label className="checkbox">
                 <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} required />
                 <span>
-                  Я согласен(на) на обработку персональных данных.{" "}
+                  Я согласен(на) на обработку персональных данных (имя и контакт) для связи и направления оптового прайса, в том числе через Telegram.{" "}
                   <Link to="/privacy">Политика конфиденциальности</Link>
                 </span>
               </label>
               {error ? <p className="form-error">{error}</p> : null}
-              <button className="btn btn-light" type="submit" disabled={pending}>
+              <button className="btn btn-light" type="submit" disabled={pending || !consent}>
                 {pending ? "Отправка…" : "Получить прайс"}
               </button>
             </form>

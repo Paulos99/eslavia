@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "server": "node server/index.mjs"
+    "server": "node server/index.mjs",
+    "telegram:chat-id": "node scripts/telegram-chat-id.mjs"
   },
   "dependencies": {
     "caniuse-lite": "^1.0.30001810",

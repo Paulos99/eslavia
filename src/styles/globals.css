@@ -734,6 +734,10 @@ p {
   border-bottom-color: var(--ink-on-dark);
 }
 
+.field input::placeholder {
+  color: rgba(247, 244, 239, 0.32);
+}
+
 .checkbox {
   display: flex;
   gap: 10px;
@@ -763,8 +767,20 @@ p {
   padding: 8px 0;
 }
 
+.success-icon {
+  margin-bottom: 12px;
+  opacity: 0.92;
+}
+
 .success-lead {
-  margin: 12px 0 20px;
+  margin: 12px 0 24px;
+}
+
+.success-note {
+  margin-top: 14px;
+  font-size: 13px;
+  color: rgba(247, 244, 239, 0.58);
+  max-width: 36ch;
 }
 
 .size-table-wrap {

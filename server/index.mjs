@@ -3,11 +3,18 @@ import { readFileSync, existsSync, statSync } from "node:fs";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
-import { sendWholesaleLead } from "./telegram.mjs";
+import { sendWholesaleLead, startTelegramCallbackPoller } from "./telegram.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const dist = join(__dirname, "..", "dist");
 const port = Number(process.env.PORT || 4173);
+const corsOrigin = process.env.LEAD_CORS_ORIGIN || "https://paulos99.github.io";
+
+function setCors(res) {
+  res.setHeader("Access-Control-Allow-Origin", corsOrigin);
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+}
 
 const types = {
   ".html": "text/html; charset=utf-8",
@@ -31,7 +38,18 @@ function send(res, code, body, headers = {}) {
 const server = createServer(async (req, res) => {
   const url = new URL(req.url || "/", `http://${req.headers.host}`);
 
-  if (url.pathname === "/api/wholesale-lead" && req.method === "POST") {
+  if (url.pathname === "/api/wholesale-lead") {
+    setCors(res);
+    if (req.method === "OPTIONS") {
+      send(res, 204, "");
+      return;
+    }
+    if (req.method !== "POST") {
+      send(res, 405, JSON.stringify({ ok: false, error: "Method Not Allowed" }), {
+        "Content-Type": "application/json",
+      });
+      return;
+    }
     const chunks = [];
     for await (const chunk of req) chunks.push(chunk);
     let body = {};
@@ -74,5 +92,6 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(port, () => {
-  console.log(`Taisiya server http://localhost:${port}`);
+  startTelegramCallbackPoller();
+  console.log(`Eslavia server http://localhost:${port}`);
 });
