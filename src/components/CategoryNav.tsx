@@ -34,13 +34,13 @@ export function CategoryNav({
                 ) : (
                   <span className="no-photo" />
                 )}
-                <span className="category-caption">
-                  <span className="category-name">{c.name}</span>
-                  <span className="category-count">
-                    {c.count} {plural(c.count)}
-                  </span>
-                </span>
               </div>
+              <span className="category-caption">
+                <span className="category-name">{c.name}</span>
+                <span className="category-count">
+                  {c.count} {plural(c.count)}
+                </span>
+              </span>
             </a>
           ))}
         </div>

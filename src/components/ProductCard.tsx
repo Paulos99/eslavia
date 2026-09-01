@@ -2,6 +2,11 @@ import { formatPrice } from "../lib/formatPrice";
 import { publicUrl } from "../lib/publicUrl";
 import type { Product } from "../data/types";
 
+function compactSizes(sizes: string[]) {
+  if (sizes.length <= 6) return sizes.join(" · ");
+  return `${sizes[0]}–${sizes[sizes.length - 1]}`;
+}
+
 export function ProductCard({ product, onOpen }: { product: Product; onOpen: (p: Product) => void }) {
   const img = product.images[0];
   const img2 = product.images[1];
@@ -19,7 +24,7 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: (p:
       <div className="product-meta">
         <h3>{product.name}</h3>
         <p className="price">{formatPrice(product.priceRetail)}</p>
-        {product.sizes.length ? <p className="sizes">{product.sizes.join(" · ")}</p> : null}
+        <p className="sizes">{product.sizes.length ? compactSizes(product.sizes) : "\u00a0"}</p>
       </div>
     </button>
   );

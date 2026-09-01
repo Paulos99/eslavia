@@ -24,10 +24,13 @@ export type Category = {
 
 export type Company = {
   name: string;
+  legalName: string;
   tagline: string;
   about: string;
   facts: string[];
   inn: string;
+  legalAddress: string;
+  rknRegistryNumber: string;
   year: number;
 };
 

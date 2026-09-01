@@ -7,6 +7,7 @@ export function SizeGuide() {
         <p className="eyebrow">Подбор</p>
         <h2 className="section-title">Таблица размеров</h2>
         {sizeGuide.note ? <p className="section-lead">{sizeGuide.note}</p> : null}
+        <p className="table-hint">Листайте таблицу в сторону</p>
         <div className="size-table-wrap">
           <table>
             <thead>

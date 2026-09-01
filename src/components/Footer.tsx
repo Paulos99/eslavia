@@ -34,7 +34,9 @@ export function Footer() {
       </div>
       <div className="container footer-bottom">
         <p>
-          {company.name} © {company.year} · ИНН {company.inn}
+          {company.legalName}
+          <br />
+          {company.name} © {company.year} · ИНН {company.inn} · реестр операторов ПДн № {company.rknRegistryNumber}
         </p>
       </div>
     </footer>

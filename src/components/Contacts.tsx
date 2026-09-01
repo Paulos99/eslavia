@@ -11,6 +11,7 @@ export function Contacts() {
           <div className="contact-lines">
             <a href={`tel:+${contacts.phoneRaw}`}>{contacts.phone}</a>
             <a href={`mailto:${contacts.email}`}>{contacts.email}</a>
+            <span>{company.legalName}</span>
             <span>ИНН {company.inn}</span>
           </div>
           <div className="hero-actions">
