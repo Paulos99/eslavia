@@ -50,7 +50,7 @@ def main() -> None:
         print("Nothing to deploy")
         return
 
-    run(["git", "commit", "-m", "deploy: Эславия rebrand"], cwd=WORK)
+    run(["git", "commit", "-m", "deploy: wholesale leads to Telegram"], cwd=WORK)
     run(["git", "push", "origin", "gh-pages"], cwd=WORK)
     print("Deployed to gh-pages")
 

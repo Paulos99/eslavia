@@ -6,3 +6,8 @@ data/raw
 .DS_Store
 __pycache__/
 *.pyc
+.gh-pages-deploy-tmp
+.gh-pages-deploy-tmp2
+.gh-pages-deploy-tmp3
+.gh-pages-work
+gh-pages-9hkd4u1t
