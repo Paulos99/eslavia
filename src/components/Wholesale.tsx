@@ -57,7 +57,7 @@ export function Wholesale() {
                 <FileDown size={16} strokeWidth={1.8} aria-hidden />
                 Скачать оптовый прайс
               </a>
-              <p className="success-note">PDF пока черновик — актуальные цены подтвердим в переписке.</p>
+              <p className="success-note">Актуальные условия и наличие подтвердим при заказе.</p>
             </div>
           ) : (
             <form className="form" onSubmit={onSubmit}>
