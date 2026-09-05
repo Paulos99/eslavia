@@ -130,6 +130,46 @@
                                     "status":  "ok",
                                     "updated":  "2026-09-05T10:39:33.7278624Z",
                                     "note":  "ai-hero-batch3"
-                                }
+                                },
+                     "n-100bs":  {
+                                     "status":  "ok",
+                                     "updated":  "2026-09-05T10:46:59.6059163Z",
+                                     "note":  "ai-hero-batch4"
+                                 },
+                     "m-100ms":  {
+                                     "status":  "ok",
+                                     "updated":  "2026-09-05T10:46:59.6612338Z",
+                                     "note":  "ai-hero-batch4"
+                                 },
+                     "n-100ks":  {
+                                     "status":  "ok",
+                                     "updated":  "2026-09-05T10:46:59.6742394Z",
+                                     "note":  "ai-hero-batch4"
+                                 },
+                     "m-102":  {
+                                   "status":  "ok",
+                                   "updated":  "2026-09-05T10:46:59.6862364Z",
+                                   "note":  "ai-hero-batch4"
+                               },
+                     "m-102e":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T10:46:59.6982380Z",
+                                    "note":  "ai-hero-batch4"
+                                },
+                     "mtk-145s":  {
+                                      "status":  "ok",
+                                      "updated":  "2026-09-05T10:46:59.7102367Z",
+                                      "note":  "ai-hero-batch4"
+                                  },
+                     "mtk-145b":  {
+                                      "status":  "ok",
+                                      "updated":  "2026-09-05T10:46:59.7212387Z",
+                                      "note":  "ai-hero-batch4"
+                                  },
+                     "mtk-145k":  {
+                                      "status":  "ok",
+                                      "updated":  "2026-09-05T10:46:59.7362398Z",
+                                      "note":  "ai-hero-batch4"
+                                  }
                  }
 }
