@@ -1,5 +1,5 @@
 import { formatPrice } from "../lib/formatPrice";
-import { publicUrl } from "../lib/publicUrl";
+import { catalogThumb, publicUrl } from "../lib/publicUrl";
 import type { Product } from "../data/types";
 
 function compactSizes(sizes: string[]) {
@@ -14,11 +14,31 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: (p:
     <button type="button" className="product-card" onClick={() => onOpen(product)}>
       <div className="product-media">
         {img ? (
-          <img className="main" src={publicUrl(img)} alt={`${product.name}, артикул ${product.article}`} width={480} height={600} loading="lazy" />
+          <img
+            className="main"
+            src={publicUrl(catalogThumb(img))}
+            srcSet={`${publicUrl(catalogThumb(img))} 960w`}
+            sizes="(max-width: 1024px) 50vw, 25vw"
+            alt={`${product.name}, артикул ${product.article}`}
+            width={480}
+            height={640}
+            loading="lazy"
+          />
         ) : (
           <div className="no-photo">Нет фото</div>
         )}
-        {img2 ? <img className="second" src={publicUrl(img2)} alt="" width={480} height={600} loading="lazy" /> : null}
+        {img2 ? (
+          <img
+            className="second"
+            src={publicUrl(catalogThumb(img2))}
+            srcSet={`${publicUrl(catalogThumb(img2))} 960w`}
+            sizes="(max-width: 1024px) 50vw, 25vw"
+            alt=""
+            width={480}
+            height={640}
+            loading="lazy"
+          />
+        ) : null}
         <span className="product-more">Подробнее</span>
       </div>
       <div className="product-meta">

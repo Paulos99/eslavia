@@ -58,3 +58,9 @@ export type Delivery = {
   payment: string;
   fullText: string;
 };
+
+export type YandexForm = {
+  /** Ссылка из «Поделиться» или src из кода iframe. Пусто — запасной канал на почту. */
+  embedUrl: string;
+  height: number;
+};

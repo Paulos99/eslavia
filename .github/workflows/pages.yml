@@ -26,6 +26,7 @@ jobs:
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
           VITE_LEAD_API_URL: ${{ secrets.LEAD_API_URL }}
+          VITE_LEAD_EMAIL: ${{ secrets.LEAD_EMAIL }}
           VITE_TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           VITE_TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       - name: Publish to gh-pages

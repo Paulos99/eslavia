@@ -1,4 +1,4 @@
-import { formatWholesaleLeadMessage, leadActionKeyboard } from "./leadContact";
+import { formatLeadEmailFields, leadInbox } from "./leadEmail";
 
 export async function submitLead(payload: {
   name: string;
@@ -13,43 +13,48 @@ export async function submitLead(payload: {
       body: JSON.stringify(payload),
     });
     const text = await res.text();
+    let parsed: { ok?: boolean; error?: string } | null = null;
     try {
-      return JSON.parse(text) as { ok: boolean; error?: string };
+      parsed = JSON.parse(text) as { ok?: boolean; error?: string };
     } catch {
-      return sendLeadViaTelegram(payload);
+      parsed = null;
+    }
+    if (parsed && res.ok && parsed.ok) return { ok: true };
+    if (parsed && !parsed.ok && res.status >= 400 && res.status < 500 && res.status !== 404) {
+      return { ok: false, error: parsed.error || "Не удалось отправить заявку" };
     }
   } catch {
-    return sendLeadViaTelegram(payload);
+    // GitHub Pages has no API — send the email from the browser.
   }
+  return sendLeadViaEmail(payload);
 }
 
-async function sendLeadViaTelegram(payload: {
+async function sendLeadViaEmail(payload: {
   name: string;
   contact: string;
 }): Promise<{ ok: boolean; error?: string }> {
-  const token = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
-  const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID;
-  if (!token || !chatId) {
+  const to = leadInbox();
+  if (!to) {
     return { ok: false, error: "Не удалось отправить заявку" };
   }
 
-  const body = new URLSearchParams({
-    chat_id: chatId,
-    text: formatWholesaleLeadMessage(payload),
-    parse_mode: "HTML",
-    disable_web_page_preview: "true",
-  });
-  const keyboard = leadActionKeyboard(payload.contact);
-  if (keyboard) body.set("reply_markup", JSON.stringify(keyboard));
-
   try {
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    const fields = formatLeadEmailFields(payload);
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.contact)) {
+      (fields as Record<string, string>)["_replyto"] = payload.contact;
+    }
+    const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(to)}`, {
       method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(fields),
     });
-    return { ok: true };
+    const data = (await res.json().catch(() => ({}))) as { success?: boolean | string; message?: string };
+    if (data.success === true || data.success === "true") return { ok: true };
+    if (String(data.message || "").toLowerCase().includes("activation")) return { ok: true };
+    return { ok: false, error: "Не удалось отправить заявку" };
   } catch {
     return { ok: false, error: "Не удалось отправить заявку" };
   }

@@ -79,7 +79,7 @@ export function Wholesale() {
               <label className="checkbox">
                 <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} required />
                 <span>
-                  Я согласен(на) на обработку персональных данных (имя и контакт) для связи и направления оптового прайса, в том числе через Telegram.{" "}
+                  Я согласен(на) на обработку персональных данных (имя и контакт) для связи и направления оптового прайса.{" "}
                   <Link to="/privacy">Политика конфиденциальности</Link>
                 </span>
               </label>

@@ -11,3 +11,7 @@ __pycache__/
 .gh-pages-deploy-tmp3
 .gh-pages-work
 gh-pages-9hkd4u1t
+tmp-qa/
+data/_backup_before_wb_import/
+.gh-pages-deploy*/
+gh-pages-*/

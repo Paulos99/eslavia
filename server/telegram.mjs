@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { sendLeadEmail } from "./mail.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const BOT_USERNAME = "eslavia_opt_bot";
@@ -214,29 +215,15 @@ export async function sendWholesaleLead(body) {
     return { ok: true, mock: true };
   }
 
+  const email = await sendLeadEmail({ name, contact });
+  if (!email.ok) return email;
+
   const token = String(process.env.TELEGRAM_BOT_TOKEN || "").trim();
-  if (!token) {
-    return {
-      ok: false,
-      error: "Заявка не отправлена: не настроен Telegram-бот.",
-    };
-  }
-
-  let chatId;
-  try {
-    chatId = await resolveTelegramChatId(token);
-  } catch {
-    return { ok: false, error: "Сеть недоступна, заявка не отправлена." };
-  }
-
-  if (!chatId) {
-    return {
-      ok: false,
-      error: `Напишите боту @${BOT_USERNAME} команду /start и отправьте заявку ещё раз.`,
-    };
-  }
+  if (!token) return { ok: true };
 
   try {
+    const chatId = await resolveTelegramChatId(token);
+    if (!chatId) return { ok: true };
     const payload = {
       chat_id: chatId,
       text: formatWholesaleLeadMessage({ name, contact }),
@@ -246,14 +233,14 @@ export async function sendWholesaleLead(body) {
     const keyboard = leadActionKeyboard(contact);
     if (keyboard) payload.reply_markup = keyboard;
     const data = await telegram(token, "sendMessage", payload);
-    if (!data.ok) {
+    if (data.ok) {
+      const phone = normalizePhone(contact);
+      if (phone) pendingContactByPhone.set(phone, name);
+    } else {
       console.error("telegram sendMessage failed", data);
-      return { ok: false, error: "Не удалось отправить заявку в Telegram." };
     }
-    const phone = normalizePhone(contact);
-    if (phone) pendingContactByPhone.set(phone, name);
-    return { ok: true };
-  } catch {
-    return { ok: false, error: "Сеть недоступна, заявка не отправлена." };
+  } catch (error) {
+    console.error("telegram notify failed", error);
   }
+  return { ok: true };
 }
