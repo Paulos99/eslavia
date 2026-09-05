@@ -57,12 +57,16 @@
                "m-106sz",
                "m-106v",
                "m-106zhz",
-               "m-109tzh"
+               "m-109tzh",
+               "m-125i",
+               "m-125r",
+               "m-126ch",
+               "mtk-114k"
            ],
     "missing":  [
 
                 ],
-    "total":  58,
+    "total":  62,
     "m-126a":  "ok",
     "m-109tm":  "ok",
     "m-125p":  "ok",
@@ -471,6 +475,46 @@
                                       "status":  "ok",
                                       "updated":  "2026-09-05T11:15:42.8653904Z",
                                       "note":  "ai-hero-batch10"
+                                  },
+                     "m-125i":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:18:53.9123726Z",
+                                    "note":  "ai-hero-batch11"
+                                },
+                     "m-125m":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:18:53.9123726Z",
+                                    "note":  "ai-hero-batch11"
+                                },
+                     "m-125r":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:18:53.9123726Z",
+                                    "note":  "ai-hero-batch11"
+                                },
+                     "m-126ch":  {
+                                     "status":  "ok",
+                                     "updated":  "2026-09-05T11:18:53.9123726Z",
+                                     "note":  "ai-hero-batch11"
+                                 },
+                     "m-126e":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:18:53.9123726Z",
+                                    "note":  "ai-hero-batch11"
+                                },
+                     "m-126k":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:18:53.9123726Z",
+                                    "note":  "ai-hero-batch11"
+                                },
+                     "mtk-114k":  {
+                                      "status":  "ok",
+                                      "updated":  "2026-09-05T11:18:53.9123726Z",
+                                      "note":  "ai-hero-batch11"
+                                  },
+                     "mtk-116a":  {
+                                      "status":  "ok",
+                                      "updated":  "2026-09-05T11:18:53.9123726Z",
+                                      "note":  "ai-hero-batch11"
                                   }
                  },
     "m-127k":  "ok",
@@ -496,5 +540,13 @@
     "m-106sz":  "ok",
     "m-106v":  "ok",
     "m-106zhz":  "ok",
-    "m-109tzh":  "ok"
+    "m-109tzh":  "ok",
+    "m-125i":  "ok",
+    "m-125m":  "ok",
+    "m-125r":  "ok",
+    "m-126ch":  "ok",
+    "m-126e":  "ok",
+    "m-126k":  "ok",
+    "mtk-114k":  "ok",
+    "mtk-116a":  "ok"
 }
