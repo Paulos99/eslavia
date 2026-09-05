@@ -90,6 +90,46 @@
                                       "status":  "ok",
                                       "updated":  "2026-09-05T10:34:25.5082405Z",
                                       "note":  "ai-hero-batch2"
-                                  }
+                                  },
+                     "mtk-118s":  {
+                                      "status":  "ok",
+                                      "updated":  "2026-09-05T10:39:33.6188517Z",
+                                      "note":  "ai-hero-batch3"
+                                  },
+                     "mtk-130i":  {
+                                      "status":  "ok",
+                                      "updated":  "2026-09-05T10:39:33.6588587Z",
+                                      "note":  "ai-hero-batch3"
+                                  },
+                     "m-106p":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T10:39:33.6708563Z",
+                                    "note":  "ai-hero-batch3"
+                                },
+                     "mtk-130f":  {
+                                      "status":  "ok",
+                                      "updated":  "2026-09-05T10:39:33.6838585Z",
+                                      "note":  "ai-hero-batch3"
+                                  },
+                     "mtk-130ch":  {
+                                       "status":  "ok",
+                                       "updated":  "2026-09-05T10:39:33.6948601Z",
+                                       "note":  "ai-hero-batch3"
+                                   },
+                     "mtk-130a":  {
+                                      "status":  "ok",
+                                      "updated":  "2026-09-05T10:39:33.7058745Z",
+                                      "note":  "ai-hero-batch3"
+                                  },
+                     "mtk-130v":  {
+                                      "status":  "ok",
+                                      "updated":  "2026-09-05T10:39:33.7178612Z",
+                                      "note":  "ai-hero-batch3"
+                                  },
+                     "m-101i":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T10:39:33.7278624Z",
+                                    "note":  "ai-hero-batch3"
+                                }
                  }
 }
