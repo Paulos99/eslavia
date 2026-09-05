@@ -1,5 +1,4 @@
 import type { Product } from "../data/types";
-import { contacts } from "../data";
 import { publicUrl } from "../lib/publicUrl";
 
 export function Hero({ photo }: { photo?: Product }) {
@@ -20,9 +19,6 @@ export function Hero({ photo }: { photo?: Product }) {
             </a>
             <a className="btn btn-ghost" href="#wholesale">
               Получить оптовый прайс
-            </a>
-            <a className="btn btn-ghost" href={contacts.whatsapp}>
-              Написать в WhatsApp
             </a>
           </div>
         </div>
