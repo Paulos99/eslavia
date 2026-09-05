@@ -1482,7 +1482,7 @@ th {
     padding-top: 10px;
   }
   .product-meta h3 {
-    font-size: 13px;
+    font-size: 16px;
     min-height: calc(1.35em * 2);
   }
   .category-caption {
@@ -1493,7 +1493,7 @@ th {
     display: block;
   }
   .category-name {
-    font-size: 18px;
+    font-size: 20px;
     height: 2.3em;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -1648,9 +1648,9 @@ th {
   }
   .hero-actions .btn-ghost {
     width: 100%;
-    min-height: 44px;
+    min-height: 48px;
     padding: 0 18px;
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 0.06em;
     opacity: 0.92;
   }
@@ -1691,11 +1691,11 @@ th {
     top: 0;
   }
   .facts-bar-title {
-    font-size: 13px;
+    font-size: 14px;
   }
   .facts-bar-item p:last-child {
-    font-size: 13px;
-    line-height: 1.4;
+    font-size: 14px;
+    line-height: 1.45;
   }
   .facts-bar-item {
     padding: 18px 14px;
@@ -1969,3 +1969,121 @@ main.privacy-page.container {
 }
 
 /* qa-polish-marker-v5 */
+
+/* === mobile type bump 2026-09-05 === */
+@media (max-width: 767px) {
+  body {
+    font-size: 16px;
+  }
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.16em;
+  }
+  .section-title {
+    font-size: clamp(34px, 9vw, 44px);
+  }
+  .section-lead {
+    font-size: 16px;
+  }
+  .hero-lead {
+    font-size: 16px;
+    line-height: 1.55;
+  }
+  .hero h1 {
+    font-size: clamp(34px, 9vw, 44px);
+  }
+  .btn {
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    min-height: 50px;
+    padding-inline: 20px;
+  }
+  .btn-primary {
+    font-size: 14px;
+    min-height: 52px;
+  }
+  .hero-actions .btn-primary {
+    font-size: 14px;
+    min-height: 52px;
+  }
+  .product-meta {
+    padding-top: 14px;
+    gap: 2px;
+  }
+  .product-meta h3 {
+    font-size: 16px;
+    line-height: 1.35;
+    min-height: calc(1.35em * 2);
+  }
+  .price {
+    font-size: 17px;
+    font-weight: 700;
+    padding-top: 8px;
+  }
+  .product-card .sizes,
+  .sizes {
+    font-size: 13px;
+    letter-spacing: 0.02em;
+  }
+  .article {
+    font-size: 13px;
+  }
+  .product-more-inline {
+    font-size: 12px;
+    margin-top: 10px;
+  }
+  .chip {
+    font-size: 14px;
+  }
+  .field span {
+    font-size: 13px;
+    letter-spacing: 0.1em;
+  }
+  .checkbox {
+    font-size: 14px;
+  }
+  .facts-bar-title {
+    font-size: 14px;
+  }
+  .facts-bar-item p:last-child {
+    font-size: 14px;
+  }
+  .modal-info h2 {
+    font-size: clamp(28px, 8vw, 34px);
+  }
+  .modal-price {
+    font-size: 20px;
+  }
+  .modal-spec,
+  .modal-desc {
+    font-size: 15px;
+  }
+  .faq-item summary {
+    font-size: 16px;
+  }
+  .faq-item p {
+    font-size: 15px;
+  }
+  .product-grid,
+  .category-grid {
+    gap: 28px 14px;
+  }
+}
+
+@media (max-width: 400px) {
+  .product-grid,
+  .category-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .product-meta h3 {
+    font-size: 17px;
+  }
+  .price {
+    font-size: 18px;
+  }
+  .product-card .sizes,
+  .sizes {
+    font-size: 14px;
+  }
+}
