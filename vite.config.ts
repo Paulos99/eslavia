@@ -40,7 +40,7 @@ async function wholesaleLeadMiddleware(req, res, next) {
 }
 
 export default defineConfig({
-  base: repoName ? `/${repoName}/` : "/",
+  base: repoName ? `/${repoName}/` : '/eslavia/',
   plugins: [
     react(),
     {
