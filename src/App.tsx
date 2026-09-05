@@ -8,6 +8,7 @@ import { About } from "./components/About";
 import { Wholesale } from "./components/Wholesale";
 import { SizeGuide } from "./components/SizeGuide";
 import { Contacts } from "./components/Contacts";
+import { SeoFaq } from "./components/SeoFaq";
 import { Footer } from "./components/Footer";
 import { categories, products } from "./data";
 import { useFilters } from "./hooks/useFilters";
@@ -57,6 +58,7 @@ export function HomePage() {
         <About photo={aboutPhoto} />
         <Wholesale />
         <SizeGuide />
+        <SeoFaq />
         <Contacts />
       </main>
       <Footer />

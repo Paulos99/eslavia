@@ -1,4 +1,5 @@
 import type { Product } from "../data/types";
+import { contacts } from "../data";
 import { publicUrl } from "../lib/publicUrl";
 
 export function Hero({ photo }: { photo?: Product }) {
@@ -6,19 +7,23 @@ export function Hero({ photo }: { photo?: Product }) {
     <section className="hero" id="top">
       <div className="container hero-grid">
         <div className="hero-copy reveal">
-          <p className="eyebrow">Эславия · женский трикотаж</p>
+          <p className="eyebrow">Эславия · опт и розница</p>
           <h1>
-            Комфорт натуральных тканей <em>на каждый день</em>
+            Женский трикотаж <em>оптом и в розницу</em>
           </h1>
           <p className="hero-lead">
-            Одежда для дома и отдыха, широкий размерный ряд от 42 до 70. Смотрите каталог или запросите оптовый прайс.
+            Эславия — домашний трикотаж: платья, пижамы, сарафаны, халаты и сорочки. Розница — цены на сайте.
+            Опт — по прайсу после заявки. Размеры от 42 до 70.
           </p>
           <div className="hero-actions">
-            <a className="btn btn-primary" href="#catalog">
+            <a className="btn btn-primary" href="#wholesale">
+              Получить оптовый прайс
+            </a>
+            <a className="btn btn-ghost" href="#catalog">
               Смотреть каталог
             </a>
-            <a className="btn btn-ghost" href="#wholesale">
-              Получить оптовый прайс
+            <a className="btn btn-ghost" href={contacts.whatsapp}>
+              Написать в WhatsApp
             </a>
           </div>
         </div>
