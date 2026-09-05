@@ -290,6 +290,46 @@
                                     "status":  "ok",
                                     "updated":  "2026-09-05T10:56:48.4864956Z",
                                     "note":  "ai-hero-batch6"
+                                },
+                     "mtk-112t":  {
+                                      "status":  "ok",
+                                      "updated":  "2026-09-05T11:01:18.9686720Z",
+                                      "note":  "ai-hero-batch7"
+                                  },
+                     "mtk-135b":  {
+                                      "status":  "ok",
+                                      "updated":  "2026-09-05T11:01:19.0096906Z",
+                                      "note":  "ai-hero-batch7"
+                                  },
+                     "mtk-104":  {
+                                     "status":  "ok",
+                                     "updated":  "2026-09-05T11:01:19.0206785Z",
+                                     "note":  "ai-hero-batch7"
+                                 },
+                     "m-125v":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:01:19.0306788Z",
+                                    "note":  "ai-hero-batch7"
+                                },
+                     "m-127l":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:01:19.0406804Z",
+                                    "note":  "ai-hero-batch7"
+                                },
+                     "m-125c":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:01:19.0536779Z",
+                                    "note":  "ai-hero-batch7"
+                                },
+                     "m-125b":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:01:19.0656799Z",
+                                    "note":  "ai-hero-batch7"
+                                },
+                     "m-127s":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:01:19.0776818Z",
+                                    "note":  "ai-hero-batch7"
                                 }
                  }
 }
