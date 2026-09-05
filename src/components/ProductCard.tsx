@@ -1,5 +1,5 @@
 import { formatPrice } from "../lib/formatPrice";
-import { catalogThumb, publicUrl } from "../lib/publicUrl";
+import { publicUrl } from "../lib/publicUrl";
 import type { Product } from "../data/types";
 
 function compactSizes(sizes: string[]) {
@@ -16,8 +16,8 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: (p:
         {img ? (
           <img
             className="main"
-            src={publicUrl(catalogThumb(img))}
-            srcSet={`${publicUrl(catalogThumb(img))} 960w`}
+            src={publicUrl(img)}
+            srcSet={`${publicUrl(img)} 960w`}
             sizes="(max-width: 1024px) 50vw, 25vw"
             alt={`${product.name}, артикул ${product.article}`}
             width={480}
@@ -30,8 +30,8 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: (p:
         {img2 ? (
           <img
             className="second"
-            src={publicUrl(catalogThumb(img2))}
-            srcSet={`${publicUrl(catalogThumb(img2))} 960w`}
+            src={publicUrl(img2)}
+            srcSet={`${publicUrl(img2)} 960w`}
             sizes="(max-width: 1024px) 50vw, 25vw"
             alt=""
             width={480}
