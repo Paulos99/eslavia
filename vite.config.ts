@@ -57,8 +57,12 @@ export default defineConfig({
     {
       name: "spa-github-pages",
       closeBundle() {
-        const index = path.resolve("dist/index.html");
-        if (existsSync(index)) copyFileSync(index, path.resolve("dist/404.html"));
+        try {
+          const index = path.resolve("dist/index.html");
+          if (existsSync(index)) copyFileSync(index, path.resolve("dist/404.html"));
+        } catch {
+          /* dist may be locked when building to a custom outDir */
+        }
       },
     },
   ],
