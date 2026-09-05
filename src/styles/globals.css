@@ -1595,3 +1595,10 @@ th {
     opacity: 1;
   }
 }
+
+.facts.nested-facts, .nested-facts {
+  margin: 0.4rem 0 0 1rem;
+  padding: 0;
+  list-style: disc;
+}
+.nested-facts li { margin: 0.15rem 0; }

@@ -29,6 +29,7 @@ export type Company = {
   about: string;
   facts: string[];
   inn: string;
+  ogrnip?: string;
   legalAddress: string;
   rknRegistryNumber: string;
   year: number;
@@ -52,6 +53,7 @@ export type SizeGuide = {
 
 export type Delivery = {
   pickup: string;
+  pickups?: string[];
   carriers: string[];
   carrierPaidBy: string;
   toTerminal: string;

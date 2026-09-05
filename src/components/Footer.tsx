@@ -36,7 +36,8 @@ export function Footer() {
         <p>
           {company.legalName}
           <br />
-          {company.name} © {company.year} · ИНН {company.inn} · реестр операторов ПДн № {company.rknRegistryNumber}
+          {company.name} © {company.year} · ИНН {company.inn}
+            {company.ogrnip ? <> · ОГРНИП {company.ogrnip}</> : null} · реестр операторов ПДн № {company.rknRegistryNumber}
         </p>
       </div>
     </footer>

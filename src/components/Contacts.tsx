@@ -1,6 +1,8 @@
 import { company, contacts, delivery } from "../data";
 
 export function Contacts() {
+  const pickups = delivery.pickups?.length ? delivery.pickups : [delivery.pickup];
+
   return (
     <section className="section" id="contacts">
       <div className="container contacts-grid">
@@ -13,6 +15,7 @@ export function Contacts() {
             <a href={`mailto:${contacts.email}`}>{contacts.email}</a>
             <span>{company.legalName}</span>
             <span>ИНН {company.inn}</span>
+            {company.ogrnip ? <span>ОГРНИП {company.ogrnip}</span> : null}
           </div>
           <div className="hero-actions">
             <a className="btn btn-ghost" href={contacts.whatsapp}>
@@ -29,7 +32,14 @@ export function Contacts() {
         <div>
           <h3 className="section-title section-title-s">Доставка и оплата</h3>
           <ul className="facts">
-            <li>Самовывоз: {delivery.pickup}</li>
+            <li>
+              Самовывоз:
+              <ul className="facts nested-facts">
+                {pickups.map((p) => (
+                  <li key={p}>{p}</li>
+                ))}
+              </ul>
+            </li>
             <li>
               Доставка ТК {delivery.carriers.join(", ")} — за счёт покупателя. До терминала — {delivery.toTerminal}.
             </li>
