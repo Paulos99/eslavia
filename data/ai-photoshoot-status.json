@@ -36,12 +36,19 @@
                "m-125b",
                "m-125g",
                "m-125z",
-               "m-125m"
+               "m-125m",
+               "m-127k",
+               "m-125s",
+               "m-102h",
+               "m-102c",
+               "m-102yar",
+               "m-127ch",
+               "m-101b"
            ],
     "missing":  [
 
                 ],
-    "total":  38,
+    "total":  44,
     "m-126a":  "ok",
     "m-109tm":  "ok",
     "m-125p":  "ok",
@@ -330,6 +337,54 @@
                                     "status":  "ok",
                                     "updated":  "2026-09-05T11:01:19.0776818Z",
                                     "note":  "ai-hero-batch7"
+                                },
+                     "m-127k":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:07:04.7982065Z",
+                                    "note":  "ai-hero-batch8"
+                                },
+                     "m-125s":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:07:04.7982065Z",
+                                    "note":  "ai-hero-batch8"
+                                },
+                     "m-102h":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:07:04.7982065Z",
+                                    "note":  "ai-hero-batch8"
+                                },
+                     "m-102c":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:07:04.7982065Z",
+                                    "note":  "ai-hero-batch8"
+                                },
+                     "m-102yar":  {
+                                      "status":  "ok",
+                                      "updated":  "2026-09-05T11:07:04.7982065Z",
+                                      "note":  "ai-hero-batch8"
+                                  },
+                     "m-102f":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:07:04.7982065Z",
+                                    "note":  "ai-hero-batch8"
+                                },
+                     "m-127ch":  {
+                                     "status":  "ok",
+                                     "updated":  "2026-09-05T11:07:04.7982065Z",
+                                     "note":  "ai-hero-batch8"
+                                 },
+                     "m-101b":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:07:04.7982065Z",
+                                    "note":  "ai-hero-batch8"
                                 }
-                 }
+                 },
+    "m-127k":  "ok",
+    "m-125s":  "ok",
+    "m-102h":  "ok",
+    "m-102c":  "ok",
+    "m-102yar":  "ok",
+    "m-102f":  "ok",
+    "m-127ch":  "ok",
+    "m-101b":  "ok"
 }
