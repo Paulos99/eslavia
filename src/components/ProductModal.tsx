@@ -3,19 +3,27 @@ import { X } from "lucide-react";
 import { formatPrice } from "../lib/formatPrice";
 import { publicUrl } from "../lib/publicUrl";
 import type { Product } from "../data/types";
+import { ImageLightbox } from "./ImageLightbox";
 
 export function ProductModal({ product, onClose }: { product: Product; onClose: () => void }) {
   const [index, setIndex] = useState(0);
+  const [zoomOpen, setZoomOpen] = useState(false);
+  const zoomOpenRef = useRef(false);
+  zoomOpenRef.current = zoomOpen;
   const closeRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIndex(0);
+    setZoomOpen(false);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     closeRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        if (zoomOpenRef.current) return;
+        onClose();
+      }
       if (e.key !== "Tab" || !dialogRef.current) return;
       const nodes = [...dialogRef.current.querySelectorAll<HTMLElement>("a[href], button, input, select, textarea")].filter(
         (el) => !el.hasAttribute("disabled"),
@@ -49,15 +57,28 @@ export function ProductModal({ product, onClose }: { product: Product; onClose: 
         </button>
         <div className="modal-gallery">
           {img ? (
-            <img src={publicUrl(img)} alt={product.name} width={800} height={1000} />
+            <button
+              type="button"
+              className="modal-main-photo"
+              aria-label="Увеличить фото"
+              onClick={() => setZoomOpen(true)}
+            >
+              <img src={publicUrl(img)} alt={product.name} width={800} height={1000} />
+            </button>
           ) : (
             <div className="no-photo">Нет фото</div>
           )}
           {product.images.length > 1 ? (
             <div className="thumbs">
               {product.images.map((src, i) => (
-                <button key={src} type="button" className={i === index ? "is-active" : ""} onClick={() => setIndex(i)} aria-label={`Фото ${i + 1}`}>
-                  <img src={publicUrl(src)} alt="" width={56} height={70} />
+                <button
+                  key={src}
+                  type="button"
+                  className={i === index ? "is-active" : ""}
+                  onClick={() => setIndex(i)}
+                  aria-label={`Фото ${i + 1}`}
+                >
+                  <img src={publicUrl(src)} alt="" width={56} height={70} loading={Math.abs(i - index) > 1 ? "lazy" : "eager"} />
                 </button>
               ))}
             </div>
@@ -86,6 +107,14 @@ export function ProductModal({ product, onClose }: { product: Product; onClose: 
           </a>
         </div>
       </div>
+      {zoomOpen && product.images.length ? (
+        <ImageLightbox
+          images={product.images}
+          startIndex={index}
+          alt={product.name}
+          onClose={() => setZoomOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }
