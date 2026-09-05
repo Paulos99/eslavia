@@ -557,56 +557,6 @@
                                       "updated":  "2026-09-05T11:18:53.9123726Z",
                                       "note":  "ai-hero-batch11"
                                   },
-                     "mtk-116l":  {
-                                      "status":  "ok",
-                                      "updated":  "2026-09-05T11:25:10.5621526Z",
-                                      "note":  "ai-hero-batch12-final"
-                                  },
-                     "mtk-116m":  {
-                                      "status":  "ok",
-                                      "updated":  "2026-09-05T11:25:10.5621526Z",
-                                      "note":  "ai-hero-batch12-final"
-                                  },
-                     "mtk-116n":  {
-                                      "status":  "ok",
-                                      "updated":  "2026-09-05T11:25:10.5621526Z",
-                                      "note":  "ai-hero-batch12-final"
-                                  },
-                     "mtk-116zh":  {
-                                       "status":  "ok",
-                                       "updated":  "2026-09-05T11:25:10.5621526Z",
-                                       "note":  "ai-hero-batch12-final"
-                                   },
-                     "mtk-130l":  {
-                                      "status":  "ok",
-                                      "updated":  "2026-09-05T11:25:10.5621526Z",
-                                      "note":  "ai-hero-batch12-final"
-                                  },
-                     "mtk-135k":  {
-                                      "status":  "ok",
-                                      "updated":  "2026-09-05T11:25:10.5621526Z",
-                                      "note":  "ai-hero-batch12-final"
-                                  },
-                     "mtk-135s":  {
-                                      "status":  "ok",
-                                      "updated":  "2026-09-05T11:25:10.5621526Z",
-                                      "note":  "ai-hero-batch12-final"
-                                  },
-                     "n-100gr":  {
-                                     "status":  "ok",
-                                     "updated":  "2026-09-05T11:25:10.5621526Z",
-                                     "note":  "ai-hero-batch12-final"
-                                 },
-                     "n-150k":  {
-                                    "status":  "ok",
-                                    "updated":  "2026-09-05T11:25:10.5621526Z",
-                                    "note":  "ai-hero-batch12-final"
-                                },
-                     "n-150s":  {
-                                    "status":  "ok",
-                                    "updated":  "2026-09-05T11:25:10.5621526Z",
-                                    "note":  "ai-hero-batch12-final"
-                                },
                      "m-102a":  {
                                     "status":  "ok",
                                     "updated":  "2026-09-05T11:25:10.5621526Z",
@@ -671,7 +621,57 @@
                                       "status":  "ok",
                                       "updated":  "2026-09-05T11:25:10.5621526Z",
                                       "note":  "synced-from-real01"
-                                  }
+                                  },
+                     "mtk-116l":  {
+                                      "status":  "ok",
+                                      "updated":  "2026-09-05T11:25:41.8375731Z",
+                                      "note":  "ai-hero-batch12-final"
+                                  },
+                     "mtk-116m":  {
+                                      "status":  "ok",
+                                      "updated":  "2026-09-05T11:25:41.8375731Z",
+                                      "note":  "ai-hero-batch12-final"
+                                  },
+                     "mtk-116n":  {
+                                      "status":  "ok",
+                                      "updated":  "2026-09-05T11:25:41.8375731Z",
+                                      "note":  "ai-hero-batch12-final"
+                                  },
+                     "mtk-116zh":  {
+                                       "status":  "ok",
+                                       "updated":  "2026-09-05T11:25:41.8375731Z",
+                                       "note":  "ai-hero-batch12-final"
+                                   },
+                     "mtk-130l":  {
+                                      "status":  "ok",
+                                      "updated":  "2026-09-05T11:25:41.8375731Z",
+                                      "note":  "ai-hero-batch12-final"
+                                  },
+                     "mtk-135k":  {
+                                      "status":  "ok",
+                                      "updated":  "2026-09-05T11:25:41.8375731Z",
+                                      "note":  "ai-hero-batch12-final"
+                                  },
+                     "mtk-135s":  {
+                                      "status":  "ok",
+                                      "updated":  "2026-09-05T11:25:41.8375731Z",
+                                      "note":  "ai-hero-batch12-final"
+                                  },
+                     "n-100gr":  {
+                                     "status":  "ok",
+                                     "updated":  "2026-09-05T11:25:41.8375731Z",
+                                     "note":  "ai-hero-batch12-final"
+                                 },
+                     "n-150k":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:25:41.8375731Z",
+                                    "note":  "ai-hero-batch12-final"
+                                },
+                     "n-150s":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:25:41.8375731Z",
+                                    "note":  "ai-hero-batch12-final"
+                                }
                  },
     "h-315b":  "ok",
     "h-315kt":  "ok",
