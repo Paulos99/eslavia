@@ -43,12 +43,18 @@
                "m-102c",
                "m-102yar",
                "m-127ch",
-               "m-101b"
+               "m-101b",
+               "h-315b",
+               "h-315kt",
+               "k-301",
+               "k-302",
+               "m-101k",
+               "m-102n"
            ],
     "missing":  [
 
                 ],
-    "total":  44,
+    "total":  50,
     "m-126a":  "ok",
     "m-109tm":  "ok",
     "m-125p":  "ok",
@@ -377,7 +383,47 @@
                                     "status":  "ok",
                                     "updated":  "2026-09-05T11:07:25.5457082Z",
                                     "note":  "ai-hero-batch8"
-                                }
+                                },
+                     "h-315b":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:12:16.6093799Z",
+                                    "note":  "ai-hero-batch9"
+                                },
+                     "h-315kt":  {
+                                     "status":  "ok",
+                                     "updated":  "2026-09-05T11:12:16.6093799Z",
+                                     "note":  "ai-hero-batch9"
+                                 },
+                     "k-301":  {
+                                   "status":  "ok",
+                                   "updated":  "2026-09-05T11:12:16.6093799Z",
+                                   "note":  "ai-hero-batch9"
+                               },
+                     "k-302":  {
+                                   "status":  "ok",
+                                   "updated":  "2026-09-05T11:12:16.6093799Z",
+                                   "note":  "ai-hero-batch9"
+                               },
+                     "m-101k":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:12:16.6093799Z",
+                                    "note":  "ai-hero-batch9"
+                                },
+                     "m-101r":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:12:16.6093799Z",
+                                    "note":  "ai-hero-batch9"
+                                },
+                     "m-102n":  {
+                                    "status":  "ok",
+                                    "updated":  "2026-09-05T11:12:16.6093799Z",
+                                    "note":  "ai-hero-batch9"
+                                },
+                     "m-105":  {
+                                   "status":  "ok",
+                                   "updated":  "2026-09-05T11:12:16.6093799Z",
+                                   "note":  "ai-hero-batch9"
+                               }
                  },
     "m-127k":  "ok",
     "m-125s":  "ok",
@@ -386,5 +432,13 @@
     "m-102yar":  "ok",
     "m-102f":  "ok",
     "m-127ch":  "ok",
-    "m-101b":  "ok"
+    "m-101b":  "ok",
+    "h-315b":  "ok",
+    "h-315kt":  "ok",
+    "k-301":  "ok",
+    "k-302":  "ok",
+    "m-101k":  "ok",
+    "m-101r":  "ok",
+    "m-102n":  "ok",
+    "m-105":  "ok"
 }
