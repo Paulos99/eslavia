@@ -38,7 +38,7 @@ def main() -> None:
     for folder in sorted(IMG_ROOT.iterdir()):
         if not folder.is_dir():
             continue
-        for name in ("01.webp", "studio.webp"):
+        for name in ("01.webp", "02.webp", "studio.webp"):
             src = folder / name
             if src.exists() and make_card(src):
                 n += 1
