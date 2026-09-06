@@ -46,7 +46,7 @@ export function Wholesale() {
           <div>
             <p className="eyebrow">Для оптовиков</p>
             <h2 className="section-title">Покупаете одежду оптом?</h2>
-            <p className="section-lead">Получите актуальный оптовый прайс и информацию для заказа. Скидки при сумме заказа от 5000 ₽.</p>
+            <p className="section-lead">Получите актуальный оптовый прайс и информацию для заказа. Скидки при сумме заказа от 5 000 ₽.</p>
           </div>
           {ok ? (
             <div className="success-box" role="status" aria-live="polite">
