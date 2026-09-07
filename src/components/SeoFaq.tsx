@@ -50,7 +50,11 @@ export function SeoFaq() {
           {items.map((item) => (
             <details key={item.q} className="faq-item">
               <summary>{item.q}</summary>
-              <p>{item.a}</p>
+              <div className="faq-answer">
+                <div className="faq-answer-inner">
+                  <p>{item.a}</p>
+                </div>
+              </div>
             </details>
           ))}
         </div>
