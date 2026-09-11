@@ -310,7 +310,7 @@ def main() -> None:
         "telegram": "https://t.me/+79631529747",
     }
     size_guide = {
-        "note": "Таблица перенесена с taisiy.ru/tablica-razmerov. В тексте «О нас» заявлен ряд 42–70, в таблице — 46–64.",
+        "note": "Российские чётные размеры 42–72. Актуальная сетка поддерживается в data/size-guide.json (не перезаписывать устаревшим дампом без расширения).",
         "columns": dump["sizeTable"][0] if dump.get("sizeTable") else [],
         "rows": dump["sizeTable"][1:] if dump.get("sizeTable") else [],
     }
