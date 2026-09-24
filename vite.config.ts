@@ -4,8 +4,6 @@ import react from "@vitejs/plugin-react";
 import path from "node:path";
 import { sendWholesaleLead, startTelegramCallbackPoller } from "./server/telegram.mjs";
 
-const repoName = process.env.GITHUB_REPOSITORY?.split("/")[1];
-
 async function wholesaleLeadMiddleware(req, res, next) {
   if (!req.url?.startsWith("/api/wholesale-lead")) {
     next();
@@ -40,7 +38,7 @@ async function wholesaleLeadMiddleware(req, res, next) {
 }
 
 export default defineConfig({
-  base: repoName ? `/${repoName}/` : '/eslavia/',
+  base: '/',
   plugins: [
     react(),
     {

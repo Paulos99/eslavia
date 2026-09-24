@@ -48,7 +48,7 @@ export async function sendLeadEmail({ name, contact }) {
     Время: `${formatLeadTime()} МСК`,
   };
 
-  const origin = String(process.env.LEAD_FORM_ORIGIN || process.env.LEAD_CORS_ORIGIN || "https://paulos99.github.io").trim();
+  const origin = String(process.env.LEAD_FORM_ORIGIN || process.env.LEAD_CORS_ORIGIN || "https://eslavia.ru").trim();
 
   try {
     const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(to)}`, {
@@ -57,7 +57,7 @@ export async function sendLeadEmail({ name, contact }) {
         "Content-Type": "application/json",
         Accept: "application/json",
         Origin: origin,
-        Referer: `${origin.replace(/\/$/, "")}/eslavia/`,
+        Referer: "https://eslavia.ru/",
       },
       body: JSON.stringify(payload),
     });
