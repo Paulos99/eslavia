@@ -63,11 +63,12 @@ export function Wholesale() {
             <form className="form" onSubmit={onSubmit}>
               <label className="field">
                 <span>Имя</span>
-                <input value={name} onChange={(e) => setName(e.target.value)} required autoComplete="name" />
+                <input className="ym-disable-keys" value={name} onChange={(e) => setName(e.target.value)} required autoComplete="name" />
               </label>
               <label className="field">
                 <span>Телефон / Telegram / e-mail</span>
                 <input
+                  className="ym-disable-keys"
                   value={contact}
                   onChange={(e) => setContact(e.target.value)}
                   required

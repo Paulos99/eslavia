@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { HomePage } from "./App";
 import { PrivacyPage } from "./components/PrivacyPage";
 import { YandexMetrikaRouteHits } from "./components/YandexMetrikaRouteHits";
+import { CookieConsent } from "./components/CookieConsent";
 import "./styles/globals.css";
 
 createRoot(document.getElementById("root")!).render(
@@ -14,6 +15,7 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/" element={<HomePage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
       </Routes>
+      <CookieConsent />
     </BrowserRouter>
   </StrictMode>,
 );

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { company, contacts } from "../data";
 import { publicUrl } from "../lib/publicUrl";
+import { openCookieConsent } from "../lib/metrika";
 
 export function Footer() {
   return (
@@ -18,6 +19,9 @@ export function Footer() {
           <a href={publicUrl("/#about")}>О компании</a>
           <a href={publicUrl("/#wholesale")}>Оптовым покупателям</a>
           <Link to="/privacy">Политика конфиденциальности</Link>
+          <button type="button" className="footer-link-btn" onClick={openCookieConsent}>
+            Настройки cookie
+          </button>
         </nav>
         <div className="footer-col">
           <p className="footer-heading">Контакты</p>

@@ -2043,3 +2043,101 @@ main.privacy-page.container {
 }
 
 /* qa-polish-marker-v5 */
+
+/* cookie consent bar */
+.cookie-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 55;
+  padding: 0 max(12px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
+  pointer-events: none;
+}
+.cookie-bar-inner {
+  pointer-events: auto;
+  max-width: 880px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px 20px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top: 2px solid var(--accent);
+  border-radius: 0;
+  box-shadow: 0 10px 32px rgba(61, 47, 44, 0.12);
+  color: var(--text);
+}
+.cookie-bar-text {
+  margin: 0;
+  flex: 1 1 auto;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.cookie-bar-text a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.cookie-bar-actions {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+.cookie-btn {
+  min-height: 40px;
+  padding: 0 18px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.cookie-btn-accept {
+  background: var(--accent);
+  color: #fff;
+  border: 1px solid var(--accent);
+}
+.cookie-btn-accept:hover {
+  background: var(--accent-hover);
+}
+.cookie-btn-decline {
+  background: var(--floral-blush);
+  color: var(--accent);
+  border: 1px solid var(--floral-rose);
+}
+.cookie-btn-decline:hover {
+  background: var(--floral-rose);
+}
+@media (max-width: 640px) {
+  .cookie-bar-inner {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 14px;
+  }
+  .cookie-bar-text {
+    font-size: 13px;
+  }
+  .cookie-bar-actions .cookie-btn {
+    flex: 1 1 0;
+  }
+}
+.footer-link-btn {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.footer .footer-link-btn:hover {
+  color: var(--ink-on-dark);
+}
+@media (max-width: 767px) {
+  .footer-col .footer-link-btn {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+  }
+}
