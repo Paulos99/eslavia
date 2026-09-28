@@ -60,7 +60,7 @@ export function Wholesale() {
               <p className="success-note">Актуальные условия и наличие подтвердим при заказе.</p>
             </div>
           ) : (
-            <form className="form" onSubmit={onSubmit}>
+            <form className="form" id="price-form" onSubmit={onSubmit}>
               <label className="field">
                 <span>Имя</span>
                 <input className="ym-disable-keys" value={name} onChange={(e) => setName(e.target.value)} required autoComplete="name" />

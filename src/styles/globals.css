@@ -818,6 +818,11 @@ button,
   gap: 18px;
 }
 
+#wholesale,
+#price-form {
+  scroll-margin-top: calc(var(--header-h) + 24px);
+}
+
 .field {
   display: grid;
   gap: 6px;
