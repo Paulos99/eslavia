@@ -382,6 +382,8 @@ button,
 .hero-photo img {
   display: block;
   width: 100%;
+  max-width: 900px; /* never upscale beyond the 900px source */
+  margin-inline: auto;
   height: auto;
   object-fit: contain;
   object-position: center;
