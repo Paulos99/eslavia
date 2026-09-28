@@ -328,6 +328,12 @@ def main() -> None:
     (DATA / "categories.json").write_text(json.dumps(categories, ensure_ascii=False, indent=2), encoding="utf-8")
     (DATA / "company.json").write_text(json.dumps(company, ensure_ascii=False, indent=2), encoding="utf-8")
     (DATA / "contacts.json").write_text(json.dumps(contacts, ensure_ascii=False, indent=2), encoding="utf-8")
+    if "Российский размер" in size_guide["columns"]:
+        _i = size_guide["columns"].index("Российский размер")
+        size_guide["columns"].pop(_i)
+        for _r in size_guide["rows"]:
+            if len(_r) > _i:
+                _r.pop(_i)
     (DATA / "size-guide.json").write_text(json.dumps(size_guide, ensure_ascii=False, indent=2), encoding="utf-8")
     (DATA / "delivery.json").write_text(json.dumps(delivery, ensure_ascii=False, indent=2), encoding="utf-8")
     write_privacy_md(dump.get("privacyText") or "")
