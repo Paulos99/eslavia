@@ -1,5 +1,5 @@
 import type { Category } from "../data/types";
-import { publicUrl } from "../lib/publicUrl";
+import { gridImage, thumbFallback } from "../lib/thumbs";
 
 export function CategoryNav({
   categories,
@@ -30,7 +30,15 @@ export function CategoryNav({
             >
               <div className="category-media">
                 {c.image ? (
-                  <img src={publicUrl(c.image)} alt={c.name} width={480} height={600} />
+                  <img
+                    {...gridImage(c.image)}
+                    alt={c.name}
+                    width={480}
+                    height={600}
+                    loading="lazy"
+                    decoding="async"
+                    onError={thumbFallback(c.image)}
+                  />
                 ) : (
                   <span className="no-photo" />
                 )}

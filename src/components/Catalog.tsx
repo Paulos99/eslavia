@@ -1,8 +1,21 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ProductCard } from "./ProductCard";
+import { products as allProducts } from "../data";
+import { prefetchGridImages } from "../lib/thumbs";
 import type { Category, Product } from "../data/types";
 
 const PAGE = 12;
+/** Cards fetched eagerly with high priority after a filter change (≈ first two rows). */
+const PRIORITY_CARDS = 8;
+
+/** Covers of the first page of "Все" and of every category — what appears right after a switch. */
+function firstPageCovers(categories: Category[]): string[] {
+  const out: string[] = [];
+  const add = (list: Product[]) => list.slice(0, PAGE).forEach((p) => p.images[0] && out.push(p.images[0]));
+  add(allProducts);
+  categories.forEach((c) => add(allProducts.filter((p) => p.category === c.name)));
+  return out;
+}
 
 export function Catalog({
   products,
@@ -30,6 +43,17 @@ export function Catalog({
   const [limit, setLimit] = useState(PAGE);
   const [sheet, setSheet] = useState(false);
   const visible = products.slice(0, limit);
+
+  // Until the user touches a filter the grid is below the fold: keep lazy loading.
+  const initialFilters = useRef(`${category}|${size}|${query}`);
+  const touched = useRef(false);
+  if (`${category}|${size}|${query}` !== initialFilters.current) touched.current = true;
+
+  // Warm the browser cache with every category's first-page thumbnails in idle time,
+  // so switching categories shows images instantly.
+  useEffect(() => {
+    prefetchGridImages(firstPageCovers(categories));
+  }, [categories]);
 
   const resetLimit = () => setLimit(PAGE);
 
@@ -142,8 +166,8 @@ export function Catalog({
           <p className="empty">Ничего не найдено. Сбросьте фильтр или измените запрос.</p>
         ) : (
           <div className="product-grid">
-            {visible.map((p) => (
-              <ProductCard key={p.id} product={p} onOpen={onOpen} />
+            {visible.map((p, i) => (
+              <ProductCard key={p.id} product={p} onOpen={onOpen} priority={touched.current && i < PRIORITY_CARDS} />
             ))}
           </div>
         )}

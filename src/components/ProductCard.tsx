@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { formatPrice } from "../lib/formatPrice";
-import { publicUrl } from "../lib/publicUrl";
+import { gridImage, thumbFallback, warmFullImage } from "../lib/thumbs";
 import type { Product } from "../data/types";
 import { ImageLightbox } from "./ImageLightbox";
 
@@ -9,13 +9,35 @@ function compactSizes(sizes: string[]) {
   return `${sizes[0]}–${sizes[sizes.length - 1]}`;
 }
 
-export function ProductCard({ product, onOpen }: { product: Product; onOpen: (p: Product) => void }) {
+export function ProductCard({
+  product,
+  onOpen,
+  priority = false,
+}: {
+  product: Product;
+  onOpen: (p: Product) => void;
+  /** First row after a user filter change: fetch immediately instead of lazily. */
+  priority?: boolean;
+}) {
   const [zoomOpen, setZoomOpen] = useState(false);
+  // Hover image is mounted only after the first hover, so it doesn't compete with covers.
+  const [hovered, setHovered] = useState(false);
   const img = product.images[0];
   const img2 = product.images[1];
+  const main = img ? gridImage(img) : null;
+  const second = img2 && hovered ? gridImage(img2) : null;
+  const warm = () => warmFullImage(img);
   return (
     <>
-      <div className="product-card">
+      <div
+        className="product-card"
+        onPointerEnter={(e) => {
+          if (e.pointerType === "mouse") setHovered(true);
+          warm();
+        }}
+        onTouchStart={warm}
+        onFocus={warm}
+      >
         <button
           type="button"
           className="product-media"
@@ -25,30 +47,34 @@ export function ProductCard({ product, onOpen }: { product: Product; onOpen: (p:
             else onOpen(product);
           }}
         >
-          {img ? (
+          {img && main ? (
             <img
               className="main"
-              src={publicUrl(img)}
-              srcSet={`${publicUrl(img)} 960w`}
-              sizes="(max-width: 1024px) 50vw, 25vw"
+              src={main.src}
+              srcSet={main.srcSet || undefined}
+              sizes={main.sizes}
               alt={`${product.name}, артикул ${product.article}`}
               width={480}
               height={640}
-              loading="lazy"
+              loading={priority ? "eager" : "lazy"}
+              fetchPriority={priority ? "high" : "auto"}
+              decoding="async"
+              onError={thumbFallback(img)}
             />
           ) : (
             <div className="no-photo">Нет фото</div>
           )}
-          {img2 ? (
+          {img2 && second ? (
             <img
               className="second"
-              src={publicUrl(img2)}
-              srcSet={`${publicUrl(img2)} 960w`}
-              sizes="(max-width: 1024px) 50vw, 25vw"
+              src={second.src}
+              srcSet={second.srcSet || undefined}
+              sizes={second.sizes}
               alt=""
               width={480}
               height={640}
-              loading="lazy"
+              decoding="async"
+              onError={thumbFallback(img2)}
             />
           ) : null}
           <span className="product-zoom-hint" aria-hidden="true">
