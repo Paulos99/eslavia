@@ -2,7 +2,7 @@ import { copyFileSync, existsSync } from "node:fs";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
-import { sendWholesaleLead, startTelegramCallbackPoller } from "./server/telegram.mjs";
+import { sendWholesaleLead } from "./server/lead.mjs";
 
 async function wholesaleLeadMiddleware(req, res, next) {
   if (!req.url?.startsWith("/api/wholesale-lead")) {
@@ -44,11 +44,9 @@ export default defineConfig({
     {
       name: "wholesale-lead",
       configureServer(server) {
-        startTelegramCallbackPoller();
         server.middlewares.use(wholesaleLeadMiddleware);
       },
       configurePreviewServer(server) {
-        startTelegramCallbackPoller();
         server.middlewares.use(wholesaleLeadMiddleware);
       },
     },

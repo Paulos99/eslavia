@@ -15,7 +15,7 @@
 - Hero сразу говорит: женский трикотаж оптом и в розницу.
 - Каталог с поиском, категориями, размером, «Показать ещё».
 - Карточка → drawer/modal, розничная цена видна.
-- Путь опта: header / hero / блок / форма → Telegram (или mock) → PDF.
+- Путь опта: header / hero / блок / форма → email (или mock) → PDF.
 
 ## UI
 
@@ -27,7 +27,7 @@
 
 - `npm run build` проходит.
 - Стек: Vite + React + TypeScript.
-- API заявок: `POST /api/wholesale-lead`, токен только в `.env`.
+- API заявок: `POST /api/wholesale-lead` → FormSubmit; на GitHub Pages — прямой вызов FormSubmit из браузера.
 - `LEAD_ADAPTER=mock` для локальной вёрстки.
 
 ## Lighthouse
@@ -38,7 +38,7 @@
 
 ```bash
 npm install
-# Telegram: заполнить TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID, убрать LEAD_ADAPTER=mock
+# Почта заявок: data/lead-mail.json (или MAIL_TO / VITE_LEAD_EMAIL); убрать LEAD_ADAPTER=mock
 npm run build
 node server/index.mjs
 ```

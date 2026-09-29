@@ -3,7 +3,7 @@ import { readFileSync, existsSync, statSync } from "node:fs";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
-import { sendWholesaleLead, startTelegramCallbackPoller } from "./telegram.mjs";
+import { sendWholesaleLead } from "./lead.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const dist = join(__dirname, "..", "dist");
@@ -77,9 +77,9 @@ const server = createServer(async (req, res) => {
     const spa = join(dist, "index.html");
     if (existsSync(spa)) {
       send(res, 200, readFileSync(spa), { "Content-Type": types[".html"] });
-      return;
+    } else {
+      send(res, 404, "Not found");
     }
-    send(res, 404, "Not found");
     return;
   }
   if (!statSync(filePath).isFile()) {
@@ -92,6 +92,5 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(port, () => {
-  startTelegramCallbackPoller();
   console.log(`Eslavia server http://localhost:${port}`);
 });

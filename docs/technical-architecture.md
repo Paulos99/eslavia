@@ -7,7 +7,7 @@
 - React Router: `/` и `/privacy`
 - Иконки: lucide-react
 - Анимации: CSS + IntersectionObserver, без Framer Motion
-- Сервер заявок: Node (`server/index.mjs`) — `POST /api/wholesale-lead` → Telegram Bot API
+- Сервер заявок: Node (`server/index.mjs`) — `POST /api/wholesale-lead` → FormSubmit / Яндекс.Почта
 
 ## Принцип
 
@@ -20,7 +20,7 @@ src/
   hooks/        useProducts, useFilters, useModal, useReducedMotion
   lib/          submitLead, formatPrice
   styles/       tokens.css, globals.css
-server/         Telegram proxy
+server/         email lead API (FormSubmit)
 public/images/products/<id>/01.webp
 public/prices/optovyy-prays.pdf
 ```
@@ -36,9 +36,10 @@ WebP, width/height 3:4, `loading="lazy"` кроме hero и первых дву�
 ## Форма опта
 
 Клиент вызывает `submitLead`.  
-Прод: `POST /api/wholesale-lead`. Токен бота только в `.env` сервера.  
+Прод (GitHub Pages): браузер шлёт письмо через FormSubmit на адрес из `data/lead-mail.json`.  
+Локально / свой Node: `POST /api/wholesale-lead` → `server/mail.mjs`.  
 `LEAD_ADAPTER=mock` — только local dev.  
-Успех API → показать кнопку PDF `/prices/optovyy-prays.pdf`. Ошибка → текст ошибки, PDF не открывать.
+Успех → показать кнопку PDF `/prices/optovyy-prays.pdf`. Ошибка → текст ошибки, PDF не открывать.
 
 ## SEO
 
