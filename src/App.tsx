@@ -14,11 +14,13 @@ import { categories, products } from "./data";
 import { useFilters } from "./hooks/useFilters";
 import { useModal } from "./hooks/useModal";
 import { useHashScroll } from "./hooks/useHashScroll";
+import { useProductDeepLink } from "./hooks/useProductDeepLink";
 
 export function HomePage() {
   const filters = useFilters(products);
   const modal = useModal();
   useHashScroll();
+  useProductDeepLink(products, modal.open);
   const withPhotos = products.filter((p) => p.images.length);
   const heroPhoto =
     withPhotos.find((p) => p.id === "m-105h") ||
