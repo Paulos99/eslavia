@@ -54,9 +54,6 @@ export type SizeGuide = {
 export type Delivery = {
   pickup: string;
   pickups?: string[];
-  carriers: string[];
-  carrierPaidBy: string;
-  toTerminal: string;
   payment: string;
   fullText: string;
 };

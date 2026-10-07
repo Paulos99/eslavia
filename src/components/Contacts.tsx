@@ -30,7 +30,7 @@ export function Contacts() {
           </div>
         </div>
         <div>
-          <h3 className="section-title section-title-s">Доставка и оплата</h3>
+          <h3 className="section-title section-title-s">Условия заказа</h3>
           <ul className="facts">
             <li>
               Самовывоз:
@@ -41,8 +41,9 @@ export function Contacts() {
               </ul>
             </li>
             <li>
-              Доставка ТК {delivery.carriers.join(", ")} — за счёт покупателя. До терминала — {delivery.toTerminal}.
+              Срок пошива 2–3 недели.
             </li>
+            <li>Индивидуальный пошив.</li>
             <li>Оплата заказа возможна по расчётному счёту, банковской картой или наличными.</li>
           </ul>
         </div>
