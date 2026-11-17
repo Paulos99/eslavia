@@ -199,3 +199,13 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .catalog__head .btn { padding: 0 14px; }
   .grid2 { gap: 14px 10px; }
 }
+
+/* password eye */
+.pw { position: relative; display: block; }
+.pw input { width: 100%; padding-right: 48px; }
+.pw__toggle { position: absolute; top: 50%; right: 6px; transform: translateY(-50%); width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 10px; background: transparent; color: var(--ink-soft); cursor: pointer; }
+.pw__toggle:hover { color: var(--cocoa); }
+.pw__toggle:focus-visible { outline: 2px solid var(--cocoa); outline-offset: 1px; }
+.pw__toggle .eye-off { display: none; }
+.pw__toggle[aria-pressed="true"] .eye-on { display: none; }
+.pw__toggle[aria-pressed="true"] .eye-off { display: block; }

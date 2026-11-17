@@ -41,6 +41,17 @@
   }
 
   // ---------- auth
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("#pw-toggle");
+    if (!b) return;
+    e.preventDefault();
+    const inp = $("#password");
+    const show = inp.type === "password";
+    inp.type = show ? "text" : "password";
+    b.setAttribute("aria-pressed", String(show));
+    b.setAttribute("aria-label", show ? "Скрыть пароль" : "Показать пароль");
+    inp.focus();
+  });
   function showLogin() { $("#app").hidden = true; $("#editor").hidden = true; $("#login").hidden = false; setTimeout(() => $("#password").focus(), 50); }
   function logout() { localStorage.removeItem(TOKEN_KEY); showLogin(); }
   $("#logout").addEventListener("click", logout);
