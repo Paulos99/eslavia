@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import html
+import time
 
 from . import catalog as c
 
@@ -14,6 +15,13 @@ KEYBOARD = {"inline_keyboard": [
     [{"text": "Открыть сайт", "url": "http://eslavia.ru/"}],
 ]}
 LABEL = {"Пижамы для дома": "Пижамы"}
+# Telegram lets a bot delete channel messages only within 48 h, so an idle nav post is re-posted before that
+ROTATE_AFTER = 44 * 3600
+
+
+def needs_rotation(posts: dict, now: float | None = None) -> bool:
+    at = posts.get("navPostedAt")
+    return bool(posts.get("navPost")) and (not at or (now or time.time()) - float(at) > ROTATE_AFTER)
 
 
 def _models(n: int) -> str:
@@ -74,11 +82,14 @@ def update(tg, products: list[dict], categories_json: list, posts: dict, repost:
             tg.delete([new])
         finally:
             raise
+    posts["navPost"], posts["navHash"], posts["navPostedAt"] = new, h, int(time.time())
     if old and old != new:
         try:
             tg.delete([old])
         except Exception as e:  # noqa: BLE001
-            posts["navPost"], posts["navHash"] = new, h
+            try:  # can't delete (older than 48 h): at least take it off the pinned list
+                tg.unpin(old)
+            except Exception:  # noqa: BLE001
+                pass
             return {"action": "reposted", "message_id": new, "old": old, "warning": f"старый пост не удалился: {e}"}
-    posts["navPost"], posts["navHash"] = new, h
     return {"action": "reposted", "message_id": new, "old": old}

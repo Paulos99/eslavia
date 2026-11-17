@@ -105,7 +105,7 @@ class Telegram:
                    {"photo": ("photo.jpg", jpeg, "image/jpeg")})
 
     def send_text(self, text: str, keyboard: dict | None = None) -> int:
-        data = {"chat_id": self.chat_id, "text": text, "parse_mode": "HTML",
+        data = {"chat_id": self.chat_id, "text": text, "parse_mode": "HTML", "disable_notification": "true",
                 "link_preview_options": json.dumps({"is_disabled": True})}
         if keyboard:
             data["reply_markup"] = json.dumps(keyboard, ensure_ascii=False)
@@ -118,6 +118,9 @@ class Telegram:
         if keyboard:
             data["reply_markup"] = json.dumps(keyboard, ensure_ascii=False)
         self._call("editMessageText", data)
+
+    def unpin(self, message_id: int) -> None:
+        self._call("unpinChatMessage", {"chat_id": self.chat_id, "message_id": message_id})
 
     def pin(self, message_id: int) -> None:
         self._call("pinChatMessage", {"chat_id": self.chat_id, "message_id": message_id, "disable_notification": "true"})

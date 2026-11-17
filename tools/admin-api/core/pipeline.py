@@ -538,7 +538,8 @@ class Pipeline:
         repo.load_head()
         products, cats, posts = self._state(repo)
         queue = self._queue(repo)
-        if not queue["items"] and not force_nav:
+        rotate = nav.needs_rotation(posts)
+        if not queue["items"] and not force_nav and not rotate:
             return {"ok": True, "sent": 0, "left": 0}
         tg = self.tg()
         if not tg.ping():
@@ -557,7 +558,7 @@ class Pipeline:
         # navigation post: re-post + pin when posts appeared or disappeared, else edit only if its text changed
         nav_res = None
         labels = [x for v in done.values() for x in v]
-        structural = force_nav or any(x in ("новый пост", "пост удалён") for x in labels)
+        structural = force_nav or rotate or any(x in ("новый пост", "пост удалён") for x in labels)
         if structural or done:
             try:
                 nav_res = nav.update(tg, products, cats, posts, repost=structural)
