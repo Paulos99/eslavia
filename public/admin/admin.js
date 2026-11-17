@@ -90,6 +90,7 @@
     $("#mode-note").textContent = "Тестовый режим: " + (dry.length ? dry.join(", ") : "") + (/test/.test(d.repo) ? (dry.length ? "; " : "") + "изменения уходят в тестовую копию сайта" : "") + ".";
     $("#bar-meta").textContent = "Кабинет каталога";
     renderQueue();
+    renderBlank();
     renderFilters(); renderList();
   }
   function imgUrl(p) {
@@ -460,7 +461,7 @@
     const withPost = $("#del-post").checked;
     $("#confirm-title").textContent = "Удалить " + p.article + "?";
     $("#confirm-text").textContent = "Модель пропадёт с сайта, из прайса и каталога в Telegram. " +
-      (withPost ? "Пост в канале тоже будет удалён." : "Пост в канале останется.");
+      (withPost ? "Пост в канале тоже уберём. Если посту больше двух дней, Telegram не даст удалить его автоматически. Тогда мы его очистим, а здесь появится напоминание удалить пост вручную." : "Пост в канале останется.");
     const dlg = $("#confirm");
     dlg.returnValue = "";
     dlg.showModal();
@@ -473,6 +474,7 @@
         const r = await api("/delete", { body: { id: p.id, deletePost: withPost } });
         showReport(r, null);
         $("#pub-title").textContent = "Удалено: " + p.article;
+        if (withPost) blankHint();
         closeEditor(); await reload();
         $("#pub-done").hidden = false; $("#pub-done").focus();
       } catch (ex) {
@@ -562,6 +564,7 @@
     conf.hidden = !(n.del && !n.err);
     $("#imp-del-check").checked = false;
     $("#imp-del-label").textContent = `Удалить ${n.del} ${plural(n.del, "модель", "модели", "моделей")} с сайта, из прайса и из канала`;
+    if (n.del && !n.err) $("#imp-body").insertAdjacentHTML("beforeend", `<p class="imp-note">Если посту больше двух дней, Telegram не даст удалить его автоматически. Тогда мы такой пост очистим, а здесь появится напоминание удалить пост вручную.</p>`);
     const apply = $("#imp-apply");
     apply.hidden = !total || n.err > 0;
     apply.textContent = "Применить";
@@ -594,6 +597,7 @@
         const c = r.counts || {};
         $("#pub-title").textContent = "Готово: " + [c.changed ? `изменено ${c.changed}` : "", c.added ? `добавлено ${c.added}` : "", c.deleted ? `удалено ${c.deleted}` : ""].filter(Boolean).join(", ");
         if (r.steps && r.steps.some((s) => s.step === "telegram" && s.jobs === 0)) setStep("telegram", "ok", "менять не понадобилось");
+        if (c.deleted) blankHint();
       }
       imp.data = null; imp.preview = null;
       await reload();
@@ -612,6 +616,35 @@
     const arts = q.slice(0, 6).map((x) => x.article).join(", ") + (q.length > 6 ? " и ещё " + (q.length - 6) : "");
     $("#tg-queue-text").textContent = `${q.length} ${plural(q.length, "пост в канале обновится", "поста в канале обновятся", "постов в канале обновятся")} автоматически в течение пары минут: ${arts}.`;
   }
+  function blankHint() {
+    const el = document.createElement("p");
+    el.className = "imp-note";
+    el.textContent = "Если посту больше двух дней, Telegram не даст удалить его автоматически. Тогда мы его очистим, а здесь появится напоминание удалить пост вручную. Новая модель может сама занять очищенный пост.";
+    $("#pub-result").append(el);
+  }
+  function renderBlank() {
+    const b = (state.data && state.data.blankPosts) || [];
+    $("#tg-blank").hidden = !b.length;
+    if (!b.length) return;
+    $("#tg-blank-text").textContent = b.length === 1
+      ? "Один пост в канале нужно удалить вручную. Модель с сайта убрана, а пост был старше двух дней, и Telegram не дал удалить его автоматически, поэтому мы его очистили. Откройте пост, удалите его в канале и отметьте здесь. Если раньше добавите новую модель, она сама займёт этот пост, и напоминание пропадёт."
+      : `${b.length} ${plural(b.length, "пост", "поста", "постов")} в канале нужно удалить вручную. Модели с сайта убраны, а посты были старше двух дней, и Telegram не дал удалить их автоматически, поэтому мы их очистили. Откройте каждый пост, удалите его в канале и отметьте здесь. Новые модели будут сами занимать эти посты, и напоминания будут пропадать.`;
+    $("#tg-blank-list").innerHTML = b.map((x) => {
+      const mid = x.mids[0];
+      const d = String(x.date || "").split("-").reverse().join(".");
+      return `<li class="blank-item"><a href="https://t.me/eslavia_opt/${mid}" target="_blank" rel="noopener">Пост ${esc(x.article)}</a><span class="blank-item__meta">${esc([x.category, d ? "очищен " + d : ""].filter(Boolean).join(" · "))}</span><button class="btn btn--quiet btn--small" type="button" data-blank="${mid}">Я удалила пост</button></li>`;
+    }).join("");
+  }
+  $("#tg-blank-list").addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-blank]"); if (!btn) return;
+    btn.disabled = true; btn.textContent = "Отмечаем…";
+    try {
+      await api("/blank-done", { body: { mid: Number(btn.dataset.blank) } });
+      state.data.blankPosts = (state.data.blankPosts || []).filter((x) => String(x.mids[0]) !== btn.dataset.blank);
+      renderBlank();
+      fileStatus("Отметили, напоминание убрано");
+    } catch (ex) { btn.disabled = false; btn.textContent = "Я удалила пост"; fileStatus(ex.message, true); }
+  });
   $("#tg-retry").addEventListener("click", async (e) => {
     const b = e.currentTarget; b.disabled = true; const label = b.textContent; b.textContent = "Проверяем…";
     try { await reload(); if (!(state.data.tgQueue || []).length) fileStatus("Посты в канале обновлены"); }

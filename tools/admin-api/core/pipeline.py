@@ -71,7 +71,8 @@ class Pipeline:
             p["_post"] = appcat.post_url(posts, p["id"])
         queue = self._queue(repo)
         arts = {p["id"]: p.get("article") for p in products}
-        return {"tgQueue": [{"id": k, **v, "article": arts.get(k) or v.get("article") or k} for k, v in queue["items"].items()],
+        return {"blankPosts": posts.get("blankPosts") or [],
+                "tgQueue": [{"id": k, **v, "article": arts.get(k) or v.get("article") or k} for k, v in queue["items"].items()],
                 "products": products, "categories": [x["name"] for x in cats] or c.CATEGORIES,
                 "head": head, "repo": self.cfg["SITE_REPO"], "imageBase": self.cfg["IMAGE_BASE"],
                 "rawBase": f"https://raw.githubusercontent.com/{self.cfg['SITE_REPO']}/{head}/public",
@@ -412,13 +413,9 @@ class Pipeline:
         report["steps"].append({"step": "site", "ok": True, "commit": res})
         tg_action = "kept"
         if rec and drop_post:
-            try:
-                self._tg_remove(tg, rec)
-                tg_action = "deleted"
-            except TgError as e:
-                tg_action = "queued"
-                report["warnings"].append("Пост в канале удалится автоматически через GitHub, обычно за пару минут.")
-                self._queue_commit({pid: {"what": ["delete"], "reason": str(e), "mids": rec}})
+            tg_action = "queued"
+            self._queue_commit({pid: {"what": ["delete"], "reason": "удаление модели", "mids": rec,
+                                      "meta": {"article": old.get("article"), "category": old.get("category")}}})
         report["steps"].append({"step": "telegram", "action": tg_action, "dry_run": tg.dry_run, "calls": tg.log})
         app = self.app()
         if app:
@@ -442,7 +439,8 @@ class Pipeline:
         return q
 
     @staticmethod
-    def _queue_add(queue: dict, jobs: dict, reason: str, mids: dict | None = None, articles: dict | None = None) -> None:
+    def _queue_add(queue: dict, jobs: dict, reason: str, mids: dict | None = None, articles: dict | None = None,
+                   meta: dict | None = None) -> None:
         now = time.strftime("%Y-%m-%dT%H:%M:%S%z")
         for pid, what in jobs.items():
             item = queue["items"].get(pid) or {"what": [], "since": now}
@@ -456,6 +454,9 @@ class Pipeline:
                 item["mids"] = mids[pid]
             if articles and articles.get(pid):
                 item["article"] = articles[pid]
+            for k, v in ((meta or {}).get(pid) or {}).items():
+                if v:
+                    item[k] = v
             queue["items"][pid] = item
 
     def _queue_commit(self, failed: dict, cleared: tuple = ()) -> None:
@@ -467,7 +468,7 @@ class Pipeline:
             for pid in cleared:
                 q["items"].pop(pid, None)
             for pid, f in failed.items():
-                self._queue_add(q, {pid: f["what"]}, f["reason"], {pid: f.get("mids")})
+                self._queue_add(q, {pid: f["what"]}, f["reason"], {pid: f.get("mids")}, meta={pid: f.get("meta")})
             try:
                 repo.commit({TG_QUEUE: dumps_pretty(q)}, "Канал: очередь обновлений постов")
                 return
@@ -479,13 +480,20 @@ class Pipeline:
                 return
 
     def _tg_run(self, tg: Telegram, jobs: dict, by_id: dict, posts: dict, img, deadline: float,
-                mids_for: dict | None = None):
+                mids_for: dict | None = None, meta_for: dict | None = None):
         """Run channel updates. jobs: pid -> set of caption|photo1..3|post|delete.
+        Deletions go first: a post Telegram won't delete (older than 48 h) is handed to a new model from the
+        same run, or blanked and remembered in posts['blankPosts'] for reuse and a manual-delete reminder.
         Returns (failed {pid: {what, reason, mids}}, done {pid: [labels]}, posts_changed)."""
         failed, done, posts_changed = {}, {}, False
         down = None
         names = {"caption": "подпись", "photo1": "фото 1", "photo2": "фото 2", "photo3": "фото 3",
                  "post": "новый пост", "delete": "пост удалён"}
+        jobs = dict(sorted(jobs.items(), key=lambda kv: 0 if "delete" in kv[1] else 1))
+        mapping = posts.get("posts") or {}
+        waiting = [pid for pid, w in jobs.items() if "delete" not in w and by_id.get(pid)
+                   and ("post" in w or not mapping.get(pid)) and len(by_id[pid].get("images") or []) >= 3]
+        reserved: dict[str, list[int]] = {}
         for pid, what in jobs.items():
             what = set(what)
             mids = (mids_for or {}).get(pid)
@@ -495,10 +503,23 @@ class Pipeline:
                 continue
             try:
                 if "delete" in what:
-                    if mids:
-                        done[pid] = [self._tg_remove(tg, mids)]
-                    else:
+                    if not mids:
                         done[pid] = [names["delete"]]
+                    elif self._tg_try_delete(tg, mids):
+                        done[pid] = [names["delete"]]
+                    else:
+                        free = [w for w in waiting if w not in reserved]
+                        if free:  # a new model in the same run takes this post over
+                            reserved[free[0]] = mids
+                            done[pid] = ["пост передан новой модели"]
+                        else:
+                            ok = self._tg_blank(tg, mids)
+                            m = (meta_for or {}).get(pid) or {}
+                            posts.setdefault("blankPosts", []).append(
+                                {"mids": mids, "article": m.get("article") or pid, "category": m.get("category"),
+                                 "date": time.strftime("%Y-%m-%d"), "complete": ok})
+                            posts_changed = True
+                            done[pid] = ["пост очищен" if ok else "пост очищен частично"]
                     continue
                 p = by_id.get(pid)
                 if not p:
@@ -507,6 +528,23 @@ class Pipeline:
                 if "post" in what or not rec:
                     if len(p.get("images") or []) < 3:
                         continue
+                    slot, from_blank = reserved.get(pid), None
+                    if not slot:
+                        from_blank = self._pick_blank(posts, p.get("category"))
+                        slot = from_blank["mids"] if from_blank else None
+                    if slot:
+                        try:
+                            self._tg_reuse(tg, slot, p, img)
+                            if from_blank:
+                                posts["blankPosts"] = [b for b in posts.get("blankPosts") or [] if b is not from_blank]
+                            posts.setdefault("posts", {})[pid] = slot
+                            posts_changed = True
+                            done[pid] = ["пост переиспользован"]
+                            continue
+                        except TgError as e:
+                            if "недоступен" in str(e):
+                                raise
+                            # couldn't reuse: fall back to a fresh post, the blank stays in the reminder list
                     jpgs = [images.tg_jpeg(img(p, i)) for i in range(3)]
                     new = tg.send_album(jpgs, c.build_caption(p, None))
                     posts.setdefault("posts", {})[pid] = new
@@ -535,15 +573,36 @@ class Pipeline:
         return failed, done, posts_changed
 
     @staticmethod
-    def _tg_remove(tg: Telegram, mids: list[int]) -> str:
-        """Delete a product post; Telegram refuses for messages older than 48 h, then blank it instead:
-        every photo of the album becomes the placeholder, caption and buttons go away."""
+    def _tg_try_delete(tg: Telegram, mids: list[int]) -> bool:
         try:
             tg.delete(mids)
-            return "пост удалён"
+            return True
         except TgError as e:
             if "недоступен" in str(e):
                 raise
+            return False
+
+    @staticmethod
+    def _pick_blank(posts: dict, category: str | None) -> dict | None:
+        blanks = [b for b in posts.get("blankPosts") or [] if b.get("mids")]
+        same = [b for b in blanks if category and b.get("category") == category]
+        pool = same or blanks
+        return min(pool, key=lambda b: (b.get("date") or "", b["mids"][0])) if pool else None
+
+    @staticmethod
+    def _tg_reuse(tg: Telegram, slot: list[int], p: dict, img) -> None:
+        """Put a model into an existing (blanked or freed) album: one photo per message, the main photo repeats
+        if the model has fewer photos than the album; caption and «Заказать» link point to this post."""
+        cap = c.build_caption(p, f"https://t.me/{c.CHANNEL}/{slot[0]}")
+        n = len(p.get("images") or [])
+        for i, mid in enumerate(slot):
+            tg.edit_photo(mid, images.tg_jpeg(img(p, i if i < n else 0)), cap if i == 0 else None)
+            if not tg.dry_run:
+                time.sleep(TG_PAUSE)
+
+    @staticmethod
+    def _tg_blank(tg: Telegram, mids: list[int]) -> bool:
+        """Every photo of the album becomes the placeholder, caption and buttons go away."""
         blank = (Path(__file__).resolve().parent.parent / "assets" / "blank.jpg").read_bytes()
         file_id, ok = None, True
         for mid in mids:
@@ -557,7 +616,7 @@ class Pipeline:
                     tg.clear_caption(mid)
                 except TgError:
                     pass
-        return "пост очищен" if ok else "пост очищен частично"
+        return ok
 
     def tg_retry(self, commit_suffix: str = "", force_nav: bool = False) -> dict:
         t0 = time.time()
@@ -575,17 +634,19 @@ class Pipeline:
         by_id = {p["id"]: p for p in products}
         jobs = {pid: set(v.get("what") or []) for pid, v in queue["items"].items()}
         mids = {pid: v.get("mids") for pid, v in queue["items"].items()}
+        meta = {pid: {"article": v.get("article"), "category": v.get("category")} for pid, v in queue["items"].items()}
         img = lambda p, i: repo.read("public" + p["images"][i])  # noqa: E731
-        failed, done, posts_changed = self._tg_run(tg, jobs, by_id, posts, img, t0 + 120, mids)
+        failed, done, posts_changed = self._tg_run(tg, jobs, by_id, posts, img, t0 + 120, mids, meta)
         for pid in list(queue["items"]):
             if pid not in failed:
                 queue["items"].pop(pid)
         for pid, f in failed.items():
-            self._queue_add(queue, {pid: f["what"]}, f["reason"], {pid: f.get("mids")})
+            self._queue_add(queue, {pid: f["what"]}, f["reason"], {pid: f.get("mids")}, meta={pid: meta.get(pid)})
         # navigation post: re-post + pin when posts appeared or disappeared, else edit only if its text changed
         nav_res = None
         labels = [x for v in done.values() for x in v]
-        structural = force_nav or rotate or any(x in ("новый пост", "пост удалён", "пост очищен", "пост очищен частично")
+        structural = force_nav or rotate or any(x in ("новый пост", "пост удалён", "пост очищен", "пост очищен частично",
+                                                      "пост переиспользован", "пост передан новой модели")
                                                 for x in labels)
         if structural or done:
             try:
@@ -610,6 +671,27 @@ class Pipeline:
                 print("app commit failed:", e)
         return {"ok": not failed, "sent": len(done), "left": len(failed), "head": res.get("sha"),
                 "done": done, "dry_run": tg.dry_run, "postsChanged": posts_changed, "nav": nav_res}
+
+    def blank_done(self, payload: dict) -> dict:
+        """Admin deleted a blanked post by hand: drop it from the reminder list."""
+        mid = int(payload.get("mid") or 0)
+        for attempt in range(3):
+            repo = self.site()
+            repo.load_head()
+            posts = repo.read_json(TG_POSTS)
+            before = posts.get("blankPosts") or []
+            after = [b for b in before if (b.get("mids") or [0])[0] != mid]
+            if len(after) == len(before):
+                return {"ok": True, "left": len(after)}
+            posts["blankPosts"] = after
+            try:
+                repo.commit({TG_POSTS: dumps_pretty(posts)}, "Канал: пустой пост удалён вручную")
+                return {"ok": True, "left": len(after)}
+            except GitHubError as e:
+                if e.status in (409, 422) and attempt < 2:
+                    time.sleep(1.5)
+                    continue
+                raise
 
     # -- files for download -------------------------------------------------
     def pdf(self, sha: str = "") -> dict:
@@ -757,7 +839,9 @@ class Pipeline:
             if jobs and not tg_ok:
                 self._queue_add(queue, cap_jobs, "Telegram недоступен с сервера")
                 self._queue_add(queue, del_jobs, "Telegram недоступен с сервера", del_mids,
-                                {x["id"]: x["article"] for x in dels})
+                                {x["id"]: x["article"] for x in dels},
+                                {x["id"]: {"category": next((p.get("category") for p in products if p["id"] == x["id"]), None)}
+                                 for x in dels})
             elif jobs:
                 for pid in cap_jobs:
                     queue["items"].pop(pid, None)
@@ -803,7 +887,10 @@ class Pipeline:
         if jobs and tg_ok:
             img = lambda p, i: repo.read_blob(repo.tree["public" + p["images"][i]])  # noqa: E731
             failed, done, _ = self._tg_run(tg, jobs, {p["id"]: p for p in products_new}, posts, img,
-                                           t0 + 130, del_mids)
+                                           t0 + 130, del_mids,
+                                           {x["id"]: {"article": x["article"], "category": next(
+                                               (p.get("category") for p in products if p["id"] == x["id"]), None)}
+                                            for x in dels})
             if failed:
                 self._queue_commit(failed)
                 tg_action = "queued"

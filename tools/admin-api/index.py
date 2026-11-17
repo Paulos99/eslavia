@@ -113,6 +113,8 @@ def handler(event, context=None):
             return _resp(200, pipe.import_preview(body), origin)
         if path == "/import-apply" and method == "POST":
             return _resp(200, pipe.import_apply(body), origin)
+        if path == "/blank-done" and method == "POST":
+            return _resp(200, pipe.blank_done(body), origin)
         if path == "/tg-retry" and method == "POST":
             return _resp(200, pipe.tg_retry(), origin)
         if path == "/status" and method == "GET":
