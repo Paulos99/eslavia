@@ -1,18 +1,23 @@
 """Save / delete a product: site repo (one commit) + price PDF + Mini App + Telegram."""
 from __future__ import annotations
 
+import base64
+import hashlib
 import json
 import re
 import time
 from concurrent.futures import ThreadPoolExecutor
 
-from . import appcat, catalog as c, images, pdfgen
+from . import appcat, catalog as c, images, pdfgen, xlsx
 from .gh import GitHubError, Repo
 from .tg import Telegram, TgError
 
 PRODUCTS = "data/products.json"
 CATEGORIES = "data/categories.json"
 TG_POSTS = "data/tg-posts.json"
+TG_QUEUE = "data/tg-queue.json"
+CAPTION_KEYS = ("name", "article", "sizes", "priceWholesale", "category")
+TG_PAUSE = 0.35
 PRICE_THUMBS = "data/price-thumbs"
 PDF = "public/prices/optovyy-prays.pdf"
 IMG = "public/images/products"
@@ -46,7 +51,8 @@ class Pipeline:
                     dry_run=self.cfg["GITHUB_DRY_RUN"])
 
     def tg(self) -> Telegram:
-        return Telegram(self.cfg.get("TG_TOKEN"), self.cfg["TG_CHAT_ID"], dry_run=self.cfg["TG_DRY_RUN"])
+        return Telegram(self.cfg.get("TG_TOKEN"), self.cfg["TG_CHAT_ID"], dry_run=self.cfg["TG_DRY_RUN"],
+                        simulate_down=self.cfg.get("TG_SIMULATE_DOWN", False))
 
     def _state(self, repo: Repo):
         products = repo.read_json(PRODUCTS)
@@ -62,7 +68,10 @@ class Pipeline:
         products, cats, posts = self._state(repo)
         for p in products:
             p["_post"] = appcat.post_url(posts, p["id"])
-        return {"products": products, "categories": [x["name"] for x in cats] or c.CATEGORIES,
+        queue = self._queue(repo)
+        arts = {p["id"]: p.get("article") for p in products}
+        return {"tgQueue": [{"id": k, **v, "article": arts.get(k) or v.get("article") or k} for k, v in queue["items"].items()],
+                "products": products, "categories": [x["name"] for x in cats] or c.CATEGORIES,
                 "head": head, "repo": self.cfg["SITE_REPO"], "imageBase": self.cfg["IMAGE_BASE"],
                 "rawBase": f"https://raw.githubusercontent.com/{self.cfg['SITE_REPO']}/{head}/public",
                 "dryRun": {"github": self.cfg["GITHUB_DRY_RUN"], "telegram": self.cfg["TG_DRY_RUN"]}}
@@ -133,6 +142,7 @@ class Pipeline:
         report = {"steps": [], "warnings": []}
         new_msg_ids: list[int] | None = None
         tg = self.tg()
+        tg_ok = None
         last_err = None
         for attempt in range(3):
             repo = self.site()
@@ -238,25 +248,48 @@ class Pipeline:
                 if 0 in need:
                     files[f"{PRICE_THUMBS}/{pid}.jpg"] = images.price_thumb(src_bytes[0])
 
-            # ---- Telegram (new post needs ids before the commit)
-            caption_changed = (not old) or any(old.get(k) != prod.get(k) for k in ("name", "article", "sizes", "priceWholesale", "category"))
+            # ---- Telegram (new post needs ids before the commit; edits go after it)
+            queue = self._queue(repo)
+            caption_changed = (not old) or any(old.get(k) != prod.get(k) for k in CAPTION_KEYS)
             rec = (posts.get("posts") or {}).get(pid)
             tg_action = None
-            if not rec and new_msg_ids is None:
+            jobs: set[str] = set()
+            if rec:
+                jobs |= {f"photo{i + 1}" for i in photos_changed if i < len(rec)}
+                if caption_changed:
+                    jobs.add("caption")
+                jobs |= set((queue["items"].get(pid) or {}).get("what") or [])
+                jobs.discard("post")
+            need_post = not rec and new_msg_ids is None
+            if (need_post or jobs) and tg_ok is None:
                 progress("telegram")
+                tg_ok = tg.ping()
+            if need_post and tg_ok:
                 jpgs = [images.tg_jpeg(src_bytes[i] if i in src_bytes else repo.read_blob(src_ref[i][1])) for i in range(3)]
                 try:
                     mids = tg.send_album(jpgs, c.build_caption(prod, None))
                     url = f"https://t.me/{c.CHANNEL}/{mids[0]}"
-                    tg.edit_caption(mids[0], c.build_caption(prod, url))
                     new_msg_ids = mids
                     tg_action = "posted"
+                    try:
+                        tg.edit_caption(mids[0], c.build_caption(prod, url))
+                    except TgError:
+                        jobs.add("caption")
                 except TgError as e:
                     report["warnings"].append(f"Пост в канал не опубликован: {e}")
-                    tg_action = "failed"
+                    tg_ok = False
             if new_msg_ids:
                 posts.setdefault("posts", {})[pid] = new_msg_ids
                 tg_action = tg_action or "posted"
+            if tg_ok:
+                if pid in queue["items"]:
+                    queue["items"].pop(pid)
+                    files[TG_QUEUE] = dumps_pretty(queue)
+            elif need_post or jobs:
+                what = ["post"] if (need_post and not new_msg_ids) else sorted(jobs)
+                self._queue_add(queue, {pid: what}, "Telegram недоступен с сервера")
+                files[TG_QUEUE] = dumps_pretty(queue)
+                tg_action = "queued"
 
             # ---- PDF
             progress("pdf")
@@ -265,7 +298,7 @@ class Pipeline:
             have = repo.read_many(thumb_paths)
             missing = [p for p in products if f"{PRICE_THUMBS}/{p['id']}.jpg" not in files and not have.get(f"{PRICE_THUMBS}/{p['id']}.jpg")]
             for p in missing:  # no stored thumbnail yet -> make it from photo 01
-                sha = repo.tree.get("public" + p["images"][0])
+                sha = repo.tree.get("public" + p["images"][0]) if p.get("images") else None
                 if sha:
                     files[f"{PRICE_THUMBS}/{p['id']}.jpg"] = images.price_thumb(repo.read_blob(sha))
             def thumb(p):
@@ -304,22 +337,23 @@ class Pipeline:
             raise last_err or GitHubError("не удалось сохранить")
 
         # ---- Telegram edits for an existing post (after the site is saved)
-        if rec and not new_msg_ids:
-            try:
-                url = f"https://t.me/{c.CHANNEL}/{rec[0]}"
-                cap = c.build_caption(prod, url)
-                did = []
-                for i in photos_changed:
-                    if i < len(rec):
-                        tg.edit_photo(rec[i], images.tg_jpeg(src_bytes[i]), cap if i == 0 else None)
-                        did.append(f"фото {i + 1}")
-                if caption_changed and 0 not in photos_changed:
-                    tg.edit_caption(rec[0], cap)
-                    did.append("подпись")
-                tg_action = ("edited: " + ", ".join(did)) if did else "unchanged"
-            except TgError as e:
-                tg_action = "failed"
-                report["warnings"].append(f"Пост в канале не обновился: {e}")
+        if rec and not new_msg_ids and tg_ok and jobs:
+            def img(_p, i):
+                if i in src_bytes:
+                    return src_bytes[i]
+                kind, v = src_ref[i]
+                return v if kind == "new" else repo.read_blob(v)
+            failed, done, _ = self._tg_run(tg, {pid: jobs}, {pid: prod}, posts, img, time.time() + 100)
+            if failed:
+                tg_action = "queued"
+                report["warnings"].append("Пост в канале не обновился, Telegram недоступен. Изменение поставлено в очередь.")
+                self._queue_commit(failed)
+            else:
+                tg_action = ("edited: " + ", ".join(done.get(pid, []))) if done.get(pid) else "unchanged"
+        elif rec and not jobs:
+            tg_action = "unchanged"
+        if tg_action == "queued" and not any("очеред" in w for w in report["warnings"]):
+            report["warnings"].append("Telegram сейчас недоступен с сервера. Пост обновится, когда очередь будет отправлена.")
         report["steps"].append({"step": "telegram", "action": tg_action, "dry_run": tg.dry_run,
                                 "post": appcat.post_url(posts, pid), "calls": tg.log})
 
@@ -383,8 +417,9 @@ class Pipeline:
                 tg.delete(rec)
                 tg_action = "deleted"
             except TgError as e:
-                tg_action = "failed"
-                report["warnings"].append(f"Пост в канале не удалился: {e}")
+                tg_action = "queued"
+                report["warnings"].append(f"Пост в канале не удалился ({e}), удаление поставлено в очередь.")
+                self._queue_commit({pid: {"what": ["delete"], "reason": str(e), "mids": rec}})
         report["steps"].append({"step": "telegram", "action": tg_action, "dry_run": tg.dry_run, "calls": tg.log})
         app = self.app()
         if app:
@@ -397,4 +432,366 @@ class Pipeline:
             except GitHubError as e:
                 report["warnings"].append(f"Mini App (отдельный репозиторий) не обновился: {e}")
         report.update(id=pid, head=res.get("sha"))
+        return report
+
+    # -- Telegram queue ------------------------------------------------------
+    # api.telegram.org is filtered from Yandex Cloud, so failed channel updates are kept in
+    # data/tg-queue.json (same commit) and sent later by /tg-retry or tools/admin-api/flush_tg_queue.py.
+    def _queue(self, repo: Repo) -> dict:
+        q = repo.read_json(TG_QUEUE, default={"version": 1, "items": {}})
+        q.setdefault("items", {})
+        return q
+
+    @staticmethod
+    def _queue_add(queue: dict, jobs: dict, reason: str, mids: dict | None = None, articles: dict | None = None) -> None:
+        now = time.strftime("%Y-%m-%dT%H:%M:%S%z")
+        for pid, what in jobs.items():
+            item = queue["items"].get(pid) or {"what": [], "since": now}
+            what = set(item.get("what") or []) | set(what)
+            if "delete" in what:
+                what = {"delete"}
+            elif "post" in what:
+                what = {"post"}
+            item.update(what=sorted(what), reason=reason, at=now)
+            if mids and mids.get(pid):
+                item["mids"] = mids[pid]
+            if articles and articles.get(pid):
+                item["article"] = articles[pid]
+            queue["items"][pid] = item
+
+    def _queue_commit(self, failed: dict, cleared: tuple = ()) -> None:
+        """Follow-up commit for updates that failed after the main commit."""
+        for attempt in range(3):
+            repo = self.site()
+            repo.load_head()
+            q = self._queue(repo)
+            for pid in cleared:
+                q["items"].pop(pid, None)
+            for pid, f in failed.items():
+                self._queue_add(q, {pid: f["what"]}, f["reason"], {pid: f.get("mids")})
+            try:
+                repo.commit({TG_QUEUE: dumps_pretty(q)}, "Канал: очередь обновлений постов")
+                return
+            except GitHubError as e:
+                if e.status in (409, 422) and attempt < 2:
+                    time.sleep(1.5)
+                    continue
+                print("queue commit failed:", e)
+                return
+
+    def _tg_run(self, tg: Telegram, jobs: dict, by_id: dict, posts: dict, img, deadline: float,
+                mids_for: dict | None = None):
+        """Run channel updates. jobs: pid -> set of caption|photo1..3|post|delete.
+        Returns (failed {pid: {what, reason, mids}}, done {pid: [labels]}, posts_changed)."""
+        failed, done, posts_changed = {}, {}, False
+        down = None
+        names = {"caption": "подпись", "photo1": "фото 1", "photo2": "фото 2", "photo3": "фото 3",
+                 "post": "новый пост", "delete": "пост удалён"}
+        for pid, what in jobs.items():
+            what = set(what)
+            mids = (mids_for or {}).get(pid)
+            if down or time.time() > deadline:
+                failed[pid] = {"what": sorted(what), "reason": down or "не хватило времени, остальное в очереди",
+                               "mids": mids}
+                continue
+            try:
+                if "delete" in what:
+                    if mids:
+                        tg.delete(mids)
+                    done[pid] = [names["delete"]]
+                    continue
+                p = by_id.get(pid)
+                if not p:
+                    continue
+                rec = (posts.get("posts") or {}).get(pid)
+                if "post" in what or not rec:
+                    if len(p.get("images") or []) < 3:
+                        continue
+                    jpgs = [images.tg_jpeg(img(p, i)) for i in range(3)]
+                    new = tg.send_album(jpgs, c.build_caption(p, None))
+                    posts.setdefault("posts", {})[pid] = new
+                    posts_changed = True
+                    tg.edit_caption(new[0], c.build_caption(p, f"https://t.me/{c.CHANNEL}/{new[0]}"))
+                    done[pid] = [names["post"]]
+                    continue
+                cap = c.build_caption(p, f"https://t.me/{c.CHANNEL}/{rec[0]}")
+                did = []
+                for i in range(3):
+                    if f"photo{i + 1}" in what and i < len(rec) and i < len(p.get("images") or []):
+                        tg.edit_photo(rec[i], images.tg_jpeg(img(p, i)), cap if i == 0 else None)
+                        did.append(names[f"photo{i + 1}"])
+                        if not tg.dry_run:
+                            time.sleep(TG_PAUSE)
+                if "caption" in what and "photo1" not in what:
+                    tg.edit_caption(rec[0], cap)
+                    did.append(names["caption"])
+                    if not tg.dry_run:
+                        time.sleep(TG_PAUSE)
+                done[pid] = did
+            except TgError as e:
+                if "недоступен" in str(e):
+                    down = str(e)
+                failed[pid] = {"what": sorted(what), "reason": str(e), "mids": mids}
+        return failed, done, posts_changed
+
+    def tg_retry(self) -> dict:
+        t0 = time.time()
+        repo = self.site()
+        repo.load_head()
+        products, cats, posts = self._state(repo)
+        queue = self._queue(repo)
+        if not queue["items"]:
+            return {"ok": True, "sent": 0, "left": 0}
+        tg = self.tg()
+        if not tg.ping():
+            return {"ok": False, "sent": 0, "left": len(queue["items"]),
+                    "error": "Telegram по-прежнему недоступен с сервера"}
+        by_id = {p["id"]: p for p in products}
+        jobs = {pid: set(v.get("what") or []) for pid, v in queue["items"].items()}
+        mids = {pid: v.get("mids") for pid, v in queue["items"].items()}
+        img = lambda p, i: repo.read("public" + p["images"][i])  # noqa: E731
+        failed, done, posts_changed = self._tg_run(tg, jobs, by_id, posts, img, t0 + 120, mids)
+        for pid in list(queue["items"]):
+            if pid not in failed:
+                queue["items"].pop(pid)
+        for pid, f in failed.items():
+            self._queue_add(queue, {pid: f["what"]}, f["reason"], {pid: f.get("mids")})
+        files = {TG_QUEUE: dumps_pretty(queue)}
+        catalog_json = None
+        if posts_changed:
+            files[TG_POSTS] = dumps_pretty(posts)
+            catalog_json = appcat.dumps(appcat.build(products, cats, posts))
+            files[f"{SITE_APP}/data/catalog.json"] = catalog_json
+        res = repo.commit(files, "Канал: отправлены отложенные обновления постов")
+        app = self.app()
+        if app and catalog_json:
+            try:
+                app.commit({"data/catalog.json": catalog_json}, "Канал: новые посты")
+            except GitHubError as e:
+                print("app commit failed:", e)
+        return {"ok": not failed, "sent": len(done), "left": len(failed), "head": res.get("sha"),
+                "done": done, "dry_run": tg.dry_run}
+
+    # -- files for download -------------------------------------------------
+    def pdf(self, sha: str = "") -> dict:
+        repo = self.site()
+        ref = sha if re.fullmatch(r"[0-9a-f]{7,40}", sha or "") else self.cfg["SITE_BRANCH"]
+        r = repo._req("GET", f"/contents/{PDF}?ref={ref}", headers={"Accept": "application/vnd.github.raw+json"})
+        return {"filename": "ESLAVIA-optovyy-prays.pdf", "data": base64.b64encode(r.content).decode(),
+                "bytes": len(r.content)}
+
+    def export(self) -> dict:
+        repo = self.site()
+        head = repo.load_head()
+        products, cats, posts = self._state(repo)
+        names = [x["name"] for x in cats] or c.CATEGORIES
+        for n in c.CATEGORIES:
+            if n not in names:
+                names.append(n)
+        data = xlsx.export(products, names, posts, self.cfg["IMAGE_BASE"])
+        return {"filename": f"ESLAVIA-katalog-{time.strftime('%Y-%m-%d')}.xlsx",
+                "data": base64.b64encode(data).decode(), "head": head, "count": len(products)}
+
+    # -- Excel import -------------------------------------------------------
+    @staticmethod
+    def _table_bytes(payload: dict) -> bytes:
+        raw = payload.get("data") or ""
+        if "," in raw[:80]:
+            raw = raw.split(",", 1)[1]
+        try:
+            data = base64.b64decode(raw)
+        except Exception:  # noqa: BLE001
+            raise UserError("Файл не прочитался, загрузите его ещё раз")
+        if not data:
+            raise UserError("Пустой файл")
+        if len(data) > 2_500_000:
+            raise UserError("Файл слишком большой")
+        return data
+
+    def _diff(self, repo: Repo, payload: dict):
+        products, cats, posts = self._state(repo)
+        names = c.category_order(cats)
+        try:
+            d = xlsx.diff(self._table_bytes(payload), products, names)
+        except xlsx.TableError as e:
+            raise UserError(str(e))
+        return d, products, cats, posts
+
+    @staticmethod
+    def _signature(d: dict) -> str:
+        sig = {"c": [(x["id"], x["values"]) for x in d["changes"]], "a": [x["values"] for x in d["added"]],
+               "m": [x["id"] for x in d["missing"]], "o": d.get("order")}
+        return hashlib.sha1(json.dumps(sig, ensure_ascii=False, sort_keys=True, default=str).encode()).hexdigest()[:16]
+
+    def import_preview(self, payload: dict) -> dict:
+        repo = self.site()
+        head = repo.load_head()
+        d, *_ = self._diff(repo, payload)
+        d.update(head=head, signature=self._signature(d))
+        for x in d["changes"] + d["added"]:
+            x.pop("values", None)
+        return d
+
+    def import_apply(self, payload: dict) -> dict:
+        t0 = time.time()
+        report = {"steps": [], "warnings": []}
+        tg = self.tg()
+        tg_ok = None
+        for attempt in range(3):
+            repo = self.site()
+            repo.load_head()
+            d, products, cats, posts = self._diff(repo, payload)
+            if d["errors"]:
+                raise UserError(f"В таблице есть ошибки ({len(d['errors'])}), проверьте её ещё раз")
+            if payload.get("signature") and payload["signature"] != self._signature(d):
+                raise UserError("Каталог изменился после проверки таблицы. Загрузите таблицу ещё раз и проверьте изменения")
+            dels = d["missing"]
+            if dels and int(payload.get("confirmDelete") or 0) != len(dels):
+                raise UserError(f"Подтвердите удаление {len(dels)} мод.")
+            if not (d["changes"] or d["added"] or dels):
+                return {"unchanged": True, "steps": [], "warnings": []}
+            del_ids = {x["id"] for x in dels}
+            index = {p["id"]: i for i, p in enumerate(products)}
+            by_id = {p["id"]: dict(p) for p in products}
+            queue = self._queue(repo)
+            files: dict[str, object] = {}
+            cap_jobs: dict[str, set] = {}
+            for ch in d["changes"]:
+                p = by_id[ch["id"]]
+                before = dict(p)
+                v = ch["values"]
+                for k, val in v.items():
+                    if k in ("order", "extraCategories"):
+                        continue
+                    else:
+                        p[k] = val
+                cat = p.get("category")
+                if "extraCategories" in v:
+                    p["categories"] = [cat] + [x for x in v["extraCategories"] if x != cat]
+                elif "category" in v:
+                    old_list = before.get("categories") or [before.get("category")]
+                    p["categories"] = [cat] + [x for x in old_list if x not in (before.get("category"), cat)]
+                if not p.get("material") and before.get("material") is None:
+                    p["material"] = None
+                if any(before.get(k) != p.get(k) for k in CAPTION_KEYS) and (posts.get("posts") or {}).get(p["id"]):
+                    cap_jobs[p["id"]] = {"caption"}
+                by_id[p["id"]] = p
+            if d.get("order"):
+                seq = [i for i in d["order"] if i not in del_ids]
+                rest = [p["id"] for p in products if p["id"] not in del_ids and p["id"] not in set(seq)]
+                new_list = [by_id[i] for i in seq + rest]
+            else:
+                new_list = [by_id[p["id"]] for p in products if p["id"] not in del_ids]
+            for a in d["added"]:
+                v = a["values"]
+                cat = v["category"]
+                prod = {"id": a["id"], "article": v["article"], "name": v["name"], "category": cat,
+                        "categories": [cat] + [x for x in v.get("extraCategories") or [] if x != cat],
+                        "priceRetail": float(v["priceRetail"]), "priceWholesale": float(v["priceWholesale"]),
+                        "sizes": v["sizes"], "colors": v.get("colors") or [], "material": v.get("material") or None,
+                        "description": v.get("description") or "", "availability": v.get("availability") or "Есть в наличии",
+                        "images": [], "sourceUrl": v.get("sourceUrl") or ""}
+                if v.get("order"):
+                    new_list.insert(max(0, min(len(new_list), int(v["order"]) - 1)), prod)
+                    continue
+                idx = max([i for i, p in enumerate(new_list) if p.get("category") == cat], default=len(new_list) - 1)
+                new_list.insert(idx + 1, prod)
+            products_new = new_list
+            cats_new = c.recount_categories(cats, products_new)
+
+            # deletions: files + posts, as in /delete with deletePost
+            del_jobs, del_mids = {}, {}
+            for pid in del_ids:
+                for prefix in (f"public/images/products/{pid}/", f"{THUMBS}/{pid}/", f"{SITE_APP}/img/{pid}/"):
+                    for path in repo.tree:
+                        if path.startswith(prefix):
+                            files[path] = None
+                files[f"{PRICE_THUMBS}/{pid}.jpg"] = None
+                rec = (posts.get("posts") or {}).pop(pid, None)
+                queue["items"].pop(pid, None)
+                if rec:
+                    del_jobs[pid] = {"delete"}
+                    del_mids[pid] = rec
+            jobs = {**cap_jobs, **del_jobs}
+            if jobs and tg_ok is None:
+                tg_ok = tg.ping()
+            if jobs and not tg_ok:
+                self._queue_add(queue, cap_jobs, "Telegram недоступен с сервера")
+                self._queue_add(queue, del_jobs, "Telegram недоступен с сервера", del_mids,
+                                {x["id"]: x["article"] for x in dels})
+            elif jobs:
+                for pid in cap_jobs:
+                    queue["items"].pop(pid, None)
+            files[TG_QUEUE] = dumps_pretty(queue)
+
+            # PDF
+            have = repo.read_many([f"{PRICE_THUMBS}/{p['id']}.jpg" for p in products_new if p.get("images")])
+            for p in products_new:
+                k = f"{PRICE_THUMBS}/{p['id']}.jpg"
+                if p.get("images") and not have.get(k):
+                    sha = repo.tree.get("public" + p["images"][0])
+                    if sha:
+                        files[k] = images.price_thumb(repo.read_blob(sha))
+            def thumb(p):
+                v = files.get(f"{PRICE_THUMBS}/{p['id']}.jpg")
+                return v if isinstance(v, bytes) else have.get(f"{PRICE_THUMBS}/{p['id']}.jpg")
+            files[PDF] = pdfgen.build_pdf(products_new, cats_new, thumb)
+            catalog_json = appcat.dumps(appcat.build(products_new, cats_new, posts))
+            files[f"{SITE_APP}/data/catalog.json"] = catalog_json
+            files[PRODUCTS] = dumps_pretty(products_new)
+            files[CATEGORIES] = dumps_pretty(cats_new)
+            files[TG_POSTS] = dumps_pretty(posts)
+            parts = []
+            if d["changes"]:
+                parts.append(f"изменено {len(d['changes'])}")
+            if d["added"]:
+                parts.append(f"добавлено {len(d['added'])}")
+            if dels:
+                parts.append(f"удалено {len(dels)}")
+            msg = "Админка: таблица каталога, " + ", ".join(parts)
+            try:
+                res = repo.commit(files, msg)
+                break
+            except GitHubError as e:
+                if e.status in (409, 422) and attempt < 2:
+                    time.sleep(1.5)
+                    continue
+                raise
+        report["steps"].append({"step": "site", "ok": True, "commit": res})
+
+        tg_action = "unchanged"
+        done: dict = {}
+        if jobs and tg_ok:
+            img = lambda p, i: repo.read_blob(repo.tree["public" + p["images"][i]])  # noqa: E731
+            failed, done, _ = self._tg_run(tg, jobs, {p["id"]: p for p in products_new}, posts, img,
+                                           t0 + 130, del_mids)
+            if failed:
+                self._queue_commit(failed)
+                tg_action = "queued"
+                report["warnings"].append(f"Не все посты в канале обновились ({len(failed)}), они поставлены в очередь.")
+            else:
+                tg_action = f"edited: {len(done)} пост." if done else "unchanged"
+        elif jobs:
+            tg_action = "queued"
+            report["warnings"].append(f"Telegram сейчас недоступен с сервера. Посты ({len(jobs)}) обновятся, "
+                                      "когда очередь будет отправлена.")
+        report["steps"].append({"step": "telegram", "action": tg_action, "dry_run": tg.dry_run,
+                                "jobs": len(jobs), "done": len(done), "calls": tg.log[:50]})
+        app = self.app()
+        if app:
+            try:
+                app.load_head()
+                app_files: dict[str, object] = {"data/catalog.json": catalog_json}
+                for pid in del_ids:
+                    for path in app.tree:
+                        if path.startswith(f"img/{pid}/"):
+                            app_files[path] = None
+                report["steps"].append({"step": "app", "ok": True, "commit": app.commit(app_files, msg)})
+            except GitHubError as e:
+                report["warnings"].append(f"Mini App (отдельный репозиторий) не обновился: {e}")
+        if d["added"]:
+            report["warnings"].append("Новые модели добавлены без фото: " + ", ".join(a["article"] for a in d["added"])
+                                      + ". Добавьте фото в их карточках, тогда появятся посты в канале.")
+        report.update(head=res.get("sha"), seconds=round(time.time() - t0, 1), pdfBytes=len(files[PDF]),
+                      counts={"changed": len(d["changes"]), "added": len(d["added"]), "deleted": len(dels)})
         return report

@@ -15,8 +15,9 @@ class TgError(Exception):
 
 
 class Telegram:
-    def __init__(self, token: str | None, chat_id: str, dry_run: bool = True):
+    def __init__(self, token: str | None, chat_id: str, dry_run: bool = True, simulate_down: bool = False):
         self.token, self.chat_id, self.dry_run = token, chat_id, dry_run
+        self.simulate_down = simulate_down
         self.log: list[dict] = []
         if not dry_run and not token:
             raise TgError("нет токена бота")
@@ -31,11 +32,21 @@ class Telegram:
                 n = len(json.loads(data["media"]))
                 return [{"message_id": next(_fake_ids)} for _ in range(n)]
             return True
+        if self.simulate_down:
+            raise TgError("Telegram недоступен (тест)")
         url = f"https://api.telegram.org/bot{self.token}/{method}"
+        conn_fails = 0
         for attempt in range(4):
             try:
-                r = requests.post(url, data=data, files=files, timeout=(15, 120))
+                r = requests.post(url, data=data, files=files, timeout=(6, 90))
                 j = r.json()
+            except (requests.ConnectionError, requests.Timeout) as e:
+                # api.telegram.org is filtered from Yandex Cloud: don't burn the whole timeout on retries
+                conn_fails += 1
+                if conn_fails >= 2 or attempt == 3:
+                    raise TgError(f"Telegram недоступен ({e.__class__.__name__})")
+                time.sleep(1)
+                continue
             except (requests.RequestException, ValueError) as e:
                 if attempt == 3:
                     raise TgError(f"Telegram недоступен ({e.__class__.__name__})")
@@ -52,6 +63,22 @@ class Telegram:
                 continue
             raise TgError(f"Telegram: {desc}")
         raise TgError("Telegram: нет ответа")
+
+    def ping(self) -> bool:
+        """Quick reachability check (getMe) before a commit, so failed edits can be queued in the same commit."""
+        if self.dry_run:
+            return not self.simulate_down
+        if self.simulate_down:
+            return False
+        try:
+            r = requests.get(f"https://api.telegram.org/bot{self.token}/getMe", timeout=(5, 10))
+            return bool(r.json().get("ok"))
+        except (requests.RequestException, ValueError):
+            try:
+                r = requests.get(f"https://api.telegram.org/bot{self.token}/getMe", timeout=(5, 10))
+                return bool(r.json().get("ok"))
+            except (requests.RequestException, ValueError):
+                return False
 
     def send_album(self, jpegs: list[bytes], caption: str) -> list[int]:
         media, files = [], {}

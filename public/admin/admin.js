@@ -89,6 +89,7 @@
     $("#mode-note").hidden = !dry.length && !/test/.test(d.repo);
     $("#mode-note").textContent = "Тестовый режим: " + (dry.length ? dry.join(", ") : "") + (/test/.test(d.repo) ? (dry.length ? "; " : "") + "изменения уходят в тестовую копию сайта" : "") + ".";
     $("#bar-meta").textContent = "Кабинет каталога";
+    renderQueue();
     renderFilters(); renderList();
   }
   function imgUrl(p) {
@@ -418,14 +419,22 @@
     else setStep("site", "ok", site ? `сохранено <a href="${esc(site.url || "#")}" target="_blank" rel="noopener">${esc(String(site.sha).slice(0, 7))}</a>` : "сохранено");
     const tg = by.telegram || {};
     const dryText = { posted: "пост не отправлен", failed: "не получилось, см. ниже", deleted: "пост не удалён", kept: "пост оставлен", unchanged: "менять не понадобилось" };
-    const tgText = tg.dry_run && dryText[tg.action] ? dryText[tg.action] : tg.dry_run && String(tg.action || "").startsWith("edited") ? "пост не изменён (" + tg.action.slice(8) + ")" : { posted: "новый пост опубликован", unchanged: "менять не понадобилось", failed: "не получилось, см. ниже", kept: "пост оставлен", deleted: "пост удалён" }[tg.action]
+    if (tg.action === "queued") dryText.queued = "Telegram недоступен с сервера, обновление в очереди";
+    const tgText = tg.action === "queued" ? "Telegram недоступен с сервера, обновление поставлено в очередь" : tg.dry_run && dryText[tg.action] ? dryText[tg.action] : tg.dry_run && String(tg.action || "").startsWith("edited") ? "пост не изменён (" + tg.action.slice(8) + ")" : { posted: "новый пост опубликован", unchanged: "менять не понадобилось", failed: "не получилось, см. ниже", kept: "пост оставлен", deleted: "пост удалён" }[tg.action]
       || (String(tg.action || "").startsWith("edited") ? "обновлено: " + tg.action.slice(8) : "без изменений");
     const tgLink = tg.post && !tg.dry_run ? ` · <a href="${esc(tg.post)}" target="_blank" rel="noopener">открыть пост</a>` : "";
-    setStep("telegram", tg.action === "failed" ? "fail" : tg.dry_run ? "warn" : "ok", (tg.dry_run ? "тестовый режим: " : "") + tgText + tgLink);
+    setStep("telegram", tg.action === "failed" ? "fail" : tg.dry_run || tg.action === "queued" ? "warn" : "ok", (tg.dry_run ? "тестовый режим: " : "") + tgText + tgLink);
     if (by.app) setStep("app", "ok", "обновлён");
     else setStep("app", (r.warnings || []).some((w) => /Mini App/.test(w)) ? "fail" : "ok", (r.warnings || []).some((w) => /Mini App/.test(w)) ? "не обновился" : "обновлён вместе с сайтом");
     if (r.warnings && r.warnings.length) {
       $("#pub-result").innerHTML = `<ul class="warn-list">${r.warnings.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>`;
+    }
+    if (r.pdfBytes && site && !site.unchanged) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "btn btn--ghost btn--small pdf-link"; b.id = "pub-pdf";
+      b.innerHTML = '<svg class="ico"><use href="#i-down"/></svg>Скачать новый прайс (PDF)';
+      b.onclick = () => downloadPdf(site.dry_run ? "" : site.sha, b);
+      $("#pub-result").append(b);
     }
     $("#pub-title").textContent = product ? "Готово: " + product.article : "Готово";
     $("#pub-done").textContent = "Готово";
@@ -473,6 +482,147 @@
       } finally { state.busy = false; }
     };
   });
+
+  // ---------- files: price PDF, Excel table
+  function saveB64(b64, filename, type) {
+    const bin = atob(b64); const buf = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([buf], { type }));
+    const a = document.createElement("a"); a.href = url; a.download = filename; document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  }
+  function today() { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function fileStatus(text, bad) { const el = $("#files-status"); el.textContent = text || ""; el.classList.toggle("is-bad", !!bad); }
+  async function busyButton(btn, label, fn) {
+    if (btn.dataset.busy) return; btn.dataset.busy = "1";
+    const html = btn.innerHTML; btn.disabled = true; btn.setAttribute("aria-disabled", "true");
+    btn.innerHTML = `<svg class="ico"><use href="#i-down"/></svg>${esc(label)}`;
+    try { await fn(); } finally { btn.innerHTML = html; btn.disabled = false; btn.removeAttribute("aria-disabled"); delete btn.dataset.busy; }
+  }
+  async function downloadPdf(sha, btn) {
+    await busyButton(btn, "Готовим PDF…", async () => {
+      try {
+        const r = await api("/pdf" + (sha ? "?sha=" + encodeURIComponent(sha) : ""));
+        saveB64(r.data, `ESLAVIA-optovyy-prays-${today()}.pdf`, "application/pdf");
+        if (btn.id === "pdf-btn") fileStatus("");
+      } catch (ex) {
+        if (btn.id === "pdf-btn") fileStatus(ex.message, true); else alert(ex.message);
+      }
+    });
+  }
+  $("#pdf-btn").addEventListener("click", (e) => downloadPdf("", e.currentTarget));
+  $("#xlsx-btn").addEventListener("click", (e) => busyButton(e.currentTarget, "Собираем таблицу…", async () => {
+    try {
+      const r = await api("/export");
+      saveB64(r.data, r.filename || `ESLAVIA-katalog-${today()}.xlsx`, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      fileStatus(`Таблица скачана: ${r.count} моделей`);
+    } catch (ex) { fileStatus(ex.message, true); }
+  }));
+  $("#xlsx-up").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#xlsx-input").click(); } });
+  const imp = { data: null, preview: null, name: "" };
+  $("#xlsx-input").addEventListener("change", async (e) => {
+    const f = e.target.files[0]; e.target.value = "";
+    if (!f) return;
+    if (!/\.xlsx$/i.test(f.name)) { fileStatus("Нужен файл Excel в формате .xlsx", true); return; }
+    if (f.size > 2_500_000) { fileStatus("Файл слишком большой", true); return; }
+    fileStatus("Проверяем таблицу…");
+    try {
+      imp.data = await toB64(f); imp.name = f.name;
+      imp.preview = await api("/import-preview", { body: { data: imp.data } });
+      fileStatus("");
+      renderImport();
+    } catch (ex) { fileStatus(ex.message, true); }
+  });
+  function renderImport() {
+    const d = imp.preview;
+    const n = { ch: d.changes.length, add: d.added.length, del: d.missing.length, err: d.errors.length };
+    $("#imp-file").textContent = `${imp.name} · строк с моделями: ${d.rowsRead}`;
+    let h = "";
+    const total = n.ch + n.add + n.del;
+    if (n.err) {
+      h += `<p class="form-error">В таблице ${n.err} ${plural(n.err, "ошибка", "ошибки", "ошибок")}. Исправьте их в файле и загрузите его снова, до этого ничего не применяется.</p>`;
+      h += `<h3 class="imp-h">Ошибки</h3><table class="imp-err"><tbody>${d.errors.map((x) => `<tr><td>Строка ${x.row}</td><td>${x.column ? esc(x.column) + ": " : ""}${esc(x.message)}</td></tr>`).join("")}</tbody></table>`;
+    }
+    if (!total && !n.err) h += `<p class="imp-none">Изменений нет. Таблица совпадает с каталогом на сайте.</p>`;
+    if (total) {
+      h += `<ul class="imp-sum"><li>Изменено: <b>${n.ch}</b></li><li>Новых: <b>${n.add}</b></li><li class="${n.del ? "is-del" : ""}">Удаляется: <b>${n.del}</b></li></ul>`;
+    }
+    if (n.del) {
+      h += `<div class="imp-del"><p>Этих моделей нет в таблице, они будут удалены с сайта, из прайса, из Mini App и из канала:</p><ul>${d.missing.map((x) => `<li><b>${esc(x.article)}</b> ${esc(x.name || "")}</li>`).join("")}</ul></div>`;
+    }
+    if (n.ch) {
+      h += `<h3 class="imp-h">Изменения</h3><ul class="imp-list">${d.changes.map((x) => `<li class="imp-item"><div class="imp-item__head">${esc(x.article)}<span>строка ${x.row}</span></div><dl class="imp-ch">${x.fields.map((f) => `<dt>${esc(f.label)}</dt><dd><span class="imp-old">${esc(f.old) || "пусто"}</span><span class="imp-arrow">→</span><span class="imp-new">${esc(f.new) || "пусто"}</span></dd>`).join("")}</dl></li>`).join("")}</ul>`;
+    }
+    if (n.add) {
+      h += `<h3 class="imp-h">Новые модели</h3><ul class="imp-list">${d.added.map((x) => `<li class="imp-item"><div class="imp-item__head">${esc(x.article)}<span>строка ${x.row}, пока без фото</span></div></li>`).join("")}</ul>`;
+    }
+    const warns = (d.warnings || []).filter((w) => !/новая модель/.test(w));
+    if (warns.length) h += `<ul class="warn-list">${warns.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>`;
+    $("#imp-body").innerHTML = h;
+    const conf = $("#imp-del-confirm");
+    conf.hidden = !(n.del && !n.err);
+    $("#imp-del-check").checked = false;
+    $("#imp-del-label").textContent = `Удалить ${n.del} ${plural(n.del, "модель", "модели", "моделей")} с сайта, из прайса и из канала`;
+    const apply = $("#imp-apply");
+    apply.hidden = !total || n.err > 0;
+    apply.textContent = "Применить";
+    apply.disabled = n.del > 0;
+    $("#imp-cancel").textContent = total && !n.err ? "Отмена" : "Закрыть";
+    $("#import").hidden = false;
+    $("#import .publish__card").scrollTop = 0;
+  }
+  $("#imp-del-check").addEventListener("change", (e) => { $("#imp-apply").disabled = !e.target.checked; });
+  $("#imp-cancel").addEventListener("click", () => { $("#import").hidden = true; imp.data = null; imp.preview = null; });
+  $("#imp-apply").addEventListener("click", async () => {
+    const d = imp.preview; if (!d || state.busy) return;
+    if (d.missing.length && !$("#imp-del-check").checked) return;
+    state.busy = true; $("#import").hidden = true;
+    openPublish("Применяем таблицу", [
+      ["pdf", "Пересобираем оптовый прайс", "PDF с миниатюрами"],
+      ["site", "Сохраняем на сайт", "одним изменением в репозитории"],
+      ["telegram", "Канал в Telegram", "подписи постов" + (d.missing.length ? " и удаление" : "")],
+      ["app", "Каталог в Telegram", "Mini App"],
+      ["deploy", "Сайт обновляется", "обычно 1–2 минуты"],
+    ]);
+    setStep("pdf", "run");
+    const t = setTimeout(() => { setStep("pdf", "ok"); setStep("site", "run"); }, 6000);
+    try {
+      const r = await api("/import-apply", { body: { data: imp.data, signature: d.signature, confirmDelete: d.missing.length } });
+      clearTimeout(t);
+      if (r.unchanged) { setStep("pdf", "ok", "не понадобилось"); setStep("site", "ok", "изменений нет"); setStep("telegram", "ok", "без изменений"); setStep("app", "ok", "без изменений"); setStep("deploy", "ok", "изменений нет"); }
+      else {
+        showReport(r, null);
+        const c = r.counts || {};
+        $("#pub-title").textContent = "Готово: " + [c.changed ? `изменено ${c.changed}` : "", c.added ? `добавлено ${c.added}` : "", c.deleted ? `удалено ${c.deleted}` : ""].filter(Boolean).join(", ");
+        if (r.steps && r.steps.some((s) => s.step === "telegram" && s.jobs === 0)) setStep("telegram", "ok", "менять не понадобилось");
+      }
+      imp.data = null; imp.preview = null;
+      await reload();
+      $("#pub-done").hidden = false; $("#pub-done").focus();
+    } catch (ex) {
+      clearTimeout(t);
+      setStep("site", "fail", esc(ex.message));
+      $("#pub-result").innerHTML = `<p class="form-error">Изменения не применены. ${esc(ex.message)}</p>`;
+      $("#pub-done").hidden = false; $("#pub-done").textContent = "Закрыть";
+    } finally { state.busy = false; }
+  });
+  function renderQueue() {
+    const q = (state.data && state.data.tgQueue) || [];
+    $("#tg-queue").hidden = !q.length;
+    if (!q.length) return;
+    const arts = q.slice(0, 6).map((x) => x.article).join(", ") + (q.length > 6 ? " и ещё " + (q.length - 6) : "");
+    $("#tg-queue-text").textContent = `Telegram был недоступен с сервера, ${q.length} ${plural(q.length, "пост ждёт", "поста ждут", "постов ждут")} обновления: ${arts}.`;
+  }
+  $("#tg-retry").addEventListener("click", async (e) => {
+    const b = e.currentTarget; b.disabled = true; const label = b.textContent; b.textContent = "Отправляем…";
+    try {
+      const r = await api("/tg-retry", { body: {} });
+      if (r.ok) { await reload(); fileStatus(r.sent ? `Посты обновлены: ${r.sent}` : ""); }
+      else $("#tg-queue-text").textContent = (r.error || "Не получилось") + ". Ждут обновления: " + r.left + ".";
+    } catch (ex) { $("#tg-queue-text").textContent = ex.message; }
+    finally { b.disabled = false; b.textContent = label; }
+  });
+  function plural(n, one, few, many) { const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? many : b > 1 && b < 5 ? few : b === 1 ? one : many; }
 
   // ---------- utils
   function esc(s) { return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }

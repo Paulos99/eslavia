@@ -35,6 +35,7 @@ def config() -> dict:
         "TG_TOKEN": _secret("TG_TOKEN"),
         "TG_CHAT_ID": os.environ.get("TG_CHAT_ID", "-1004469691410"),
         "TG_DRY_RUN": _flag("TG_DRY_RUN", "1"),
+        "TG_SIMULATE_DOWN": _flag("TG_SIMULATE_DOWN", "0"),
         "IMAGE_BASE": os.environ.get("IMAGE_BASE", "https://eslavia.ru"),
     }
 
@@ -104,6 +105,16 @@ def handler(event, context=None):
             return _resp(200, pipe.save(body), origin)
         if path == "/delete" and method == "POST":
             return _resp(200, pipe.delete(body), origin)
+        if path == "/export" and method == "GET":
+            return _resp(200, pipe.export(), origin)
+        if path == "/pdf" and method == "GET":
+            return _resp(200, pipe.pdf((event.get("queryStringParameters") or {}).get("sha", "")), origin)
+        if path == "/import-preview" and method == "POST":
+            return _resp(200, pipe.import_preview(body), origin)
+        if path == "/import-apply" and method == "POST":
+            return _resp(200, pipe.import_apply(body), origin)
+        if path == "/tg-retry" and method == "POST":
+            return _resp(200, pipe.tg_retry(), origin)
         if path == "/status" and method == "GET":
             qs = event.get("queryStringParameters") or {}
             return _resp(200, pipe.status(qs.get("sha", "")), origin)

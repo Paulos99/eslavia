@@ -123,7 +123,8 @@ def recount_categories(categories_json: list, products: list[dict]) -> list:
         c["count"] = len(items)
         cover_ok = any(c.get("image", "").startswith(f"/images/products/{p['id']}/") and c["image"] in (p.get("images") or [])
                        for p in items)
-        if items and not cover_ok:
-            c["image"] = items[0]["images"][0]
+        with_img = [p for p in items if p.get("images")]
+        if with_img and not cover_ok:
+            c["image"] = with_img[0]["images"][0]
         out.append(c)
     return out
