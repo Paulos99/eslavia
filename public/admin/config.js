@@ -1,1 +1,1 @@
-window.ESLAVIA_ADMIN_API = "https://d5d5f41g15k4dssmoshc.bu9mdbe1.apigw.yandexcloud.net/api";
+window.ESLAVIA_ADMIN_API = "https://functions.yandexcloud.net/d4erap1jhoq7skqs7c7e";

@@ -17,13 +17,18 @@
     } catch (_) { /* ignore */ }
     return null;
   }
+  function apiUrl(path) {
+    if (!/functions\.yandexcloud\.net/.test(API)) return API + path;
+    const [p, q] = path.split("?");
+    return API + "?p=" + encodeURIComponent(p) + (q ? "&" + q : "");
+  }
   async function api(path, opts = {}) {
     const headers = { "Content-Type": "application/json" };
     const t = token();
-    if (t) headers.Authorization = "Bearer " + t;
+    if (t) headers["X-Admin-Token"] = t;
     let res;
     try {
-      res = await fetch(API + path, { method: opts.body ? "POST" : "GET", headers, body: opts.body ? JSON.stringify(opts.body) : undefined });
+      res = await fetch(apiUrl(path), { method: opts.body ? "POST" : "GET", headers, body: opts.body ? JSON.stringify(opts.body) : undefined });
     } catch (_) {
       throw new Error("Нет связи с сервером. Проверьте интернет и повторите.");
     }

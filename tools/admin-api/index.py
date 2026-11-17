@@ -49,7 +49,7 @@ def _resp(status: int, body: dict, origin: str = "") -> dict:
                "X-Content-Type-Options": "nosniff", "Vary": "Origin"}
     if origin and _origin_ok(origin):
         headers.update({"Access-Control-Allow-Origin": origin,
-                        "Access-Control-Allow-Headers": "Authorization, Content-Type",
+                        "Access-Control-Allow-Headers": "Authorization, Content-Type, X-Admin-Token",
                         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
                         "Access-Control-Max-Age": "600"})
     return {"statusCode": status, "headers": headers, "isBase64Encoded": False,
@@ -62,6 +62,9 @@ def handler(event, context=None):
     method = (event.get("httpMethod") or "GET").upper()
     path = (event.get("url") or event.get("path") or "/").split("?", 1)[0]
     path = "/" + path.strip("/").split("/", 1)[-1] if path.startswith("/api/") else path.rstrip("/") or "/"
+    _qs = event.get("queryStringParameters") or {}
+    if _qs.get("p"):
+        path = "/" + str(_qs.get("p")).strip("/")
     if method == "OPTIONS":
         return _resp(204 if _origin_ok(origin) else 403, {}, origin)
     if origin and not _origin_ok(origin):
@@ -91,7 +94,7 @@ def handler(event, context=None):
             return _resp(200, {"token": token, "exp": exp}, origin)
 
         bearer = headers.get("authorization", "")
-        token = bearer[7:] if bearer.lower().startswith("bearer ") else None
+        token = headers.get("x-admin-token") or (bearer[7:] if bearer.lower().startswith("bearer ") else None)
         if not auth.check_token(auth.env_secret("SESSION_SECRET"), token):
             return _resp(401, {"error": "Сессия закончилась, войдите снова"}, origin)
         pipe = Pipeline(config())
