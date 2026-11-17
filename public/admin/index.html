@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="./admin.css?v=6" />
-  <script src="./config.js?v=6"></script>
+  <link rel="stylesheet" href="./admin.css?v=7" />
+  <script src="./config.js?v=7"></script>
 </head>
 <body>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -25,6 +25,7 @@
     <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8.5h3.2L9 6h6l1.8 2.5H20V18H4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
     <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4.5v11M7 11l5 5 5-5M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 16V5M7 9.5l5-5 5 5M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-grip" viewBox="0 0 24 24"><g fill="currentColor"><circle cx="9" cy="7" r="1.3"/><circle cx="15" cy="7" r="1.3"/><circle cx="9" cy="12" r="1.3"/><circle cx="15" cy="12" r="1.3"/><circle cx="9" cy="17" r="1.3"/><circle cx="15" cy="17" r="1.3"/></g></symbol>
   </svg>
 
@@ -62,6 +63,7 @@
         <button class="btn btn--ghost btn--small" id="pdf-btn" type="button"><svg class="ico"><use href="#i-down"/></svg>Скачать прайс</button>
         <button class="btn btn--ghost btn--small" id="xlsx-btn" type="button"><svg class="ico"><use href="#i-down"/></svg>Скачать таблицу</button>
         <label class="btn btn--ghost btn--small" id="xlsx-up" tabindex="0"><input id="xlsx-input" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden /><svg class="ico"><use href="#i-up"/></svg>Загрузить таблицу</label>
+        <button class="btn btn--ghost btn--small" id="log-btn" type="button"><svg class="ico"><use href="#i-clock"/></svg>Журнал изменений</button>
         <span class="files__status" id="files-status" role="status" aria-live="polite"></span>
       </div>
       <p class="notice notice--warn" id="tg-queue" hidden><span id="tg-queue-text"></span> <button class="btn btn--quiet btn--small" id="tg-retry" type="button">Обновить статус</button></p>
@@ -87,6 +89,7 @@
       <header class="editor__bar">
         <button type="button" class="btn btn--ghost btn--icon" id="ed-close" aria-label="Закрыть без сохранения"><svg class="ico"><use href="#i-close"/></svg></button>
         <h2 id="ed-title" class="editor__title">Новая модель</h2>
+        <button type="button" id="ed-log" class="editor__post editor__link" hidden>История</button>
         <a id="ed-post" class="editor__post" target="_blank" rel="noopener" hidden>Пост в канале</a>
       </header>
 
@@ -183,6 +186,27 @@
     </form>
   </section>
 
+  <section class="editor journal" id="journal" hidden aria-labelledby="log-title">
+    <div class="editor__form journal__panel" role="dialog" aria-modal="true" aria-labelledby="log-title">
+      <header class="editor__bar">
+        <button type="button" class="btn btn--ghost btn--icon" id="log-close" aria-label="Закрыть журнал"><svg class="ico"><use href="#i-close"/></svg></button>
+        <h2 id="log-title" class="editor__title">Журнал изменений</h2>
+      </header>
+      <div class="journal__tools">
+        <label class="search">
+          <svg class="ico"><use href="#i-search"/></svg>
+          <input id="log-search" type="search" placeholder="Артикул или название" autocomplete="off" enterkeyhint="search" aria-label="Поиск по модели" />
+        </label>
+        <div class="filters" id="log-filters" role="tablist" aria-label="Что показывать"></div>
+      </div>
+      <div class="editor__body journal__body" id="log-body">
+        <ol class="log" id="log-list" aria-live="polite"></ol>
+        <p class="empty" id="log-empty" hidden></p>
+        <button class="btn btn--quiet btn--wide" id="log-more" type="button" hidden>Показать ещё</button>
+      </div>
+    </div>
+  </section>
+
   <section class="publish" id="publish" hidden role="dialog" aria-modal="true" aria-labelledby="pub-title">
     <div class="publish__card">
       <h2 class="publish__title" id="pub-title">Публикуем</h2>
@@ -218,6 +242,6 @@
     </form>
   </dialog>
 
-  <script src="./admin.js?v=6"></script>
+  <script src="./admin.js?v=7"></script>
 </body>
 </html>

@@ -157,6 +157,7 @@
     $("#f-desc").value = p ? (p.description || "") : "";
     state.sizes = p ? [...(p.sizes || [])] : [];
     state.photos = p ? (p.images || []).map((path) => ({ keep: path, url: state.data.imageBase + path, fallback: state.data.rawBase + path })) : [];
+    $("#ed-log").hidden = !p;
     $("#ed-post").hidden = !(p && p._post);
     if (p && p._post) $("#ed-post").href = p._post;
     $("#danger").hidden = !p; $("#del-post").checked = false;
@@ -650,6 +651,110 @@
     try { await reload(); if (!(state.data.tgQueue || []).length) fileStatus("Посты в канале обновлены"); }
     finally { b.disabled = false; b.textContent = label; }
   });
+  // ---------- change log
+  const LOG_ACTIONS = {
+    add: "Добавлена", edit: "Изменена", delete: "Удалена", import: "Импорт из Excel",
+    "import-add": "Добавлена из Excel", "import-edit": "Изменена из Excel", "import-delete": "Удалена из Excel",
+    tg: "Пост в канале", nav: "Навигация в канале", "blank-done": "Пустой пост удалён",
+  };
+  const LOG_FILTERS = [["", "Все"], ["edit", "Изменения"], ["add", "Добавления"], ["delete", "Удаления"], ["import", "Excel"], ["tg", "Канал"]];
+  const MONTHS = ["янв", "фев", "мар", "апр", "мая", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
+  const logState = { model: "", action: "", offset: 0, total: 0, seq: 0, timer: null, lastDay: "" };
+  function logWhen(iso) {
+    const m = /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d)/.exec(iso || "");
+    if (!m) return { day: "", time: "" };
+    const now = new Date(Date.now() + 3 * 3600_000).toISOString().slice(0, 10); // Moscow date
+    const y = new Date(Date.now() - 21 * 3600_000).toISOString().slice(0, 10);
+    const date = `${m[1]}-${m[2]}-${m[3]}`;
+    const day = date === now ? "Сегодня" : date === y ? "Вчера" : `${Number(m[3])} ${MONTHS[Number(m[2]) - 1]}${m[1] !== now.slice(0, 4) ? " " + m[1] : ""}`;
+    return { day, time: `${m[4]}:${m[5]}` };
+  }
+  function renderLogFilters() {
+    $("#log-filters").innerHTML = LOG_FILTERS.map(([k, label]) =>
+      `<button type="button" class="filter" role="tab" data-act="${k}" aria-selected="${logState.action === k}">${esc(label)}</button>`).join("");
+  }
+  function logChanges(e) {
+    const ch = e.changes || [];
+    if (!ch.length) return "";
+    const fresh = ch.every((c) => !c.old);
+    if (fresh) return `<p class="log__fresh">${ch.map((c) => `<span>${esc(c.label)}: <b>${esc(c.new)}</b></span>`).join("")}</p>`;
+    return `<dl class="log__ch">${ch.map((c) => `<div><dt>${esc(c.label)}</dt><dd>${c.old ? `<span class="imp-old">${esc(c.old)}</span><span class="imp-arrow">→</span>` : ""}<span class="imp-new">${esc(c.new || "пусто")}</span></dd></div>`).join("")}</dl>`;
+  }
+  function logItem(e) {
+    const w = logWhen(e.t);
+    const kind = (e.action || "").replace("import-", "");
+    const who = e.article
+      ? `<button type="button" class="log__model" data-model="${esc(e.article)}" title="Показать историю модели">${esc(e.article)}</button>${e.name && e.name !== e.article ? `<span class="log__name">${esc(e.name)}</span>` : ""}`
+      : "";
+    const bits = [];
+    if (e.note) bits.push(esc(e.note.charAt(0).toUpperCase() + e.note.slice(1)));
+    if (e.post) bits.push(`<a href="https://t.me/eslavia_opt/${Number(e.post)}" target="_blank" rel="noopener">пост ${Number(e.post)}</a>`);
+    const meta = [w.time, e.src === "Автоматически" ? "автоматически" : ""].filter(Boolean);
+    if (e.sha && state.data) meta.push(`<a href="https://github.com/${esc(state.data.repo)}/commit/${esc(e.sha)}" target="_blank" rel="noopener" title="Сохранение на сайте">${esc(e.sha.slice(0, 7))}</a>`);
+    let head = "";
+    if (w.day && w.day !== logState.lastDay) { logState.lastDay = w.day; head = `<li class="log__day">${esc(w.day)}</li>`; }
+    return head + `<li class="log__item log__item--${esc(kind)}">
+      <div class="log__top"><span class="log__act">${esc(LOG_ACTIONS[e.action] || e.action)}</span>${who}</div>
+      ${logChanges(e)}
+      ${bits.length ? `<p class="log__note">${bits.join(" · ")}</p>` : ""}
+      <p class="log__meta">${meta.join(" · ")}</p>
+    </li>`;
+  }
+  async function loadLog(more) {
+    const seq = ++logState.seq;
+    if (!more) { logState.offset = 0; logState.lastDay = ""; $("#log-list").innerHTML = '<li class="empty">Загружаем журнал…</li>'; $("#log-more").hidden = true; $("#log-empty").hidden = true; }
+    const btn = $("#log-more"); btn.disabled = true; if (more) btn.textContent = "Загружаем…";
+    const qs = new URLSearchParams({ offset: String(logState.offset), limit: "30" });
+    if (logState.model) qs.set("model", logState.model);
+    if (logState.action) qs.set("action", logState.action);
+    try {
+      const r = await api("/log?" + qs.toString());
+      if (seq !== logState.seq) return;
+      if (!more) $("#log-list").innerHTML = "";
+      $("#log-list").insertAdjacentHTML("beforeend", r.entries.map(logItem).join(""));
+      logState.offset += r.entries.length; logState.total = r.total;
+      btn.hidden = logState.offset >= r.total;
+      const left = r.total - logState.offset;
+      btn.textContent = left > 0 ? `Показать ещё (${left})` : "Показать ещё";
+      $("#log-empty").hidden = r.total > 0;
+      $("#log-empty").textContent = logState.model || logState.action
+        ? "По этому запросу записей нет. Попробуйте другой артикул или сбросьте фильтр."
+        : "Записей пока нет. Здесь появятся все изменения каталога: кто что поменял и когда.";
+    } catch (ex) {
+      if (seq !== logState.seq) return;
+      if (!more) $("#log-list").innerHTML = "";
+      $("#log-empty").hidden = false; $("#log-empty").textContent = ex.message;
+    } finally { btn.disabled = false; }
+  }
+  function openLog(model) {
+    logState.model = model || ""; logState.action = "";
+    $("#log-search").value = logState.model;
+    renderLogFilters();
+    $("#journal").hidden = false; document.body.style.overflow = "hidden";
+    $("#log-body").scrollTop = 0;
+    loadLog(false);
+    setTimeout(() => (model ? $("#log-close") : $("#log-search")).focus({ preventScroll: true }), 60);
+  }
+  function closeLog() { $("#journal").hidden = true; if ($("#editor").hidden) document.body.style.overflow = ""; }
+  $("#log-btn").addEventListener("click", () => openLog(""));
+  $("#ed-log").addEventListener("click", () => { if (state.editing) openLog(state.editing.article); });
+  $("#log-close").addEventListener("click", closeLog);
+  $("#journal").addEventListener("click", (e) => { if (e.target.id === "journal") closeLog(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#journal").hidden) { e.stopImmediatePropagation(); closeLog(); } }, true);
+  $("#log-search").addEventListener("input", (e) => {
+    clearTimeout(logState.timer);
+    logState.timer = setTimeout(() => { logState.model = e.target.value.trim(); loadLog(false); }, 300);
+  });
+  $("#log-filters").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-act]"); if (!b) return;
+    logState.action = b.dataset.act; renderLogFilters(); loadLog(false);
+  });
+  $("#log-list").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-model]"); if (!b) return;
+    logState.model = b.dataset.model; $("#log-search").value = logState.model; loadLog(false);
+  });
+  $("#log-more").addEventListener("click", () => loadLog(true));
+
   function plural(n, one, few, many) { const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? many : b > 1 && b < 5 ? few : b === 1 ? one : many; }
 
   // ---------- utils

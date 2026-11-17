@@ -117,6 +117,10 @@ def handler(event, context=None):
             return _resp(200, pipe.blank_done(body), origin)
         if path == "/tg-retry" and method == "POST":
             return _resp(200, pipe.tg_retry(), origin)
+        if path == "/log" and method == "GET":
+            qs = event.get("queryStringParameters") or {}
+            return _resp(200, pipe.log(qs.get("model", ""), qs.get("action", ""), qs.get("offset", 0),
+                                       qs.get("limit", 50)), origin)
         if path == "/status" and method == "GET":
             qs = event.get("queryStringParameters") or {}
             return _resp(200, pipe.status(qs.get("sha", "")), origin)

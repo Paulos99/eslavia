@@ -9,7 +9,7 @@ import re
 import time
 from concurrent.futures import ThreadPoolExecutor
 
-from . import appcat, catalog as c, images, nav, pdfgen, xlsx
+from . import appcat, catalog as c, images, journal, nav, pdfgen, xlsx
 from .gh import GitHubError, Repo
 from .tg import Telegram, TgError
 
@@ -77,6 +77,15 @@ class Pipeline:
                 "head": head, "repo": self.cfg["SITE_REPO"], "imageBase": self.cfg["IMAGE_BASE"],
                 "rawBase": f"https://raw.githubusercontent.com/{self.cfg['SITE_REPO']}/{head}/public",
                 "dryRun": {"github": self.cfg["GITHUB_DRY_RUN"], "telegram": self.cfg["TG_DRY_RUN"]}}
+
+    def log(self, model: str = "", action: str = "", offset=0, limit=50) -> dict:
+        repo = self.site()
+        repo.load_head()
+        try:
+            offset, limit = int(offset or 0), int(limit or 50)
+        except ValueError:
+            raise UserError("Неверные параметры журнала")
+        return journal.query(repo, model, action, offset, limit)
 
     def status(self, sha: str) -> dict:
         return self.site().pages_status(sha)
@@ -317,6 +326,22 @@ class Pipeline:
             files[CATEGORIES] = dumps_pretty(cats_new)
             files[TG_POSTS] = dumps_pretty(posts)
 
+            # ---- change log (same commit)
+            old_imgs = (old.get("images") or []) if old else []
+            replaced = [i for i in uploads if i < len(old_imgs)]
+            moved = bool(old) and not uploads and [r[1] for r in src_ref] != [repo.tree.get("public" + x) for x in old_imgs]
+            changes = journal.field_diff(old, prod)
+            ph = journal.photo_change(old_imgs, final_imgs, replaced, moved)
+            if ph:
+                changes.append(ph)
+            log_entries = []
+            if changes or not old:
+                log_entries.append(journal.entry("edit" if old else "add", prod, changes))
+            if new_msg_ids:
+                log_entries.append(journal.entry("tg", prod, note="новый пост", post=new_msg_ids[0]))
+            if log_entries:
+                files[journal.LOG] = journal.append(repo, log_entries)
+
             progress("commit")
             verb = "изменена" if old else "добавлена"
             try:
@@ -402,6 +427,9 @@ class Pipeline:
             files[PRODUCTS] = dumps_pretty(products)
             files[CATEGORIES] = dumps_pretty(cats_new)
             files[TG_POSTS] = dumps_pretty(posts)
+            note = ("пост в канале тоже удаляется" if drop_post else "пост в канале оставлен") if rec else ""
+            files[journal.LOG] = journal.append(repo, [journal.entry("delete", old, note=note,
+                                                                     post=rec[0] if rec else None)])
             try:
                 res = repo.commit(files, f"Админка: модель {old.get('article')} удалена")
                 break
@@ -661,6 +689,10 @@ class Pipeline:
             files[TG_POSTS] = dumps_pretty(posts)
             catalog_json = appcat.dumps(appcat.build(products, cats, posts))
             files[f"{SITE_APP}/data/catalog.json"] = catalog_json
+        log_entries = self._tg_log(done, by_id, posts, mids, meta, nav_res,
+                                   src="Автоматически" if commit_suffix else "Кабинет")
+        if log_entries:
+            files[journal.LOG] = journal.append(repo, log_entries)
         msg = "Канал: отправлены отложенные обновления постов" if done else "Канал: пост с навигацией обновлён"
         res = repo.commit(files, msg + commit_suffix)
         app = self.app()
@@ -671,6 +703,25 @@ class Pipeline:
                 print("app commit failed:", e)
         return {"ok": not failed, "sent": len(done), "left": len(failed), "head": res.get("sha"),
                 "done": done, "dry_run": tg.dry_run, "postsChanged": posts_changed, "nav": nav_res}
+
+    @staticmethod
+    def _tg_log(done: dict, by_id: dict, posts: dict, mids: dict, meta: dict, nav_res: dict | None,
+                src: str) -> list[dict]:
+        edits = {"подпись", "фото 1", "фото 2", "фото 3"}
+        out = []
+        for pid, labels in done.items():
+            if not labels:
+                continue
+            p = by_id.get(pid) or {"id": pid, "article": (meta.get(pid) or {}).get("article") or pid}
+            rec = (posts.get("posts") or {}).get(pid) or mids.get(pid) or []
+            ed = [x for x in labels if x in edits]
+            note = ("обновлены: " if len(ed) > 1 else "обновлено: ") + ", ".join(ed) if ed else ", ".join(labels)
+            out.append(journal.entry("tg", p, note=note, src=src, post=rec[0] if rec else None))
+        if nav_res and nav_res.get("action") in ("reposted", "edited"):
+            note = "навигация перевыложена и закреплена" if nav_res["action"] == "reposted" else "текст навигации обновлён"
+            out.append(journal.entry("nav", None, note=note, src=src, post=nav_res.get("message_id"),
+                                     oldPost=nav_res.get("old") if nav_res["action"] == "reposted" else None))
+        return out
 
     def blank_done(self, payload: dict) -> dict:
         """Admin deleted a blanked post by hand: drop it from the reminder list."""
@@ -684,8 +735,11 @@ class Pipeline:
             if len(after) == len(before):
                 return {"ok": True, "left": len(after)}
             posts["blankPosts"] = after
+            gone = next(b for b in before if (b.get("mids") or [0])[0] == mid)
+            log = journal.append(repo, [journal.entry("blank-done", {"id": gone.get("article"), "article": gone.get("article")},
+                                                      note="пустой пост удалён вручную", post=mid)])
             try:
-                repo.commit({TG_POSTS: dumps_pretty(posts)}, "Канал: пустой пост удалён вручную")
+                repo.commit({TG_POSTS: dumps_pretty(posts), journal.LOG: log}, "Канал: пустой пост удалён вручную")
                 return {"ok": True, "left": len(after)}
             except GitHubError as e:
                 if e.status in (409, 422) and attempt < 2:
@@ -872,6 +926,25 @@ class Pipeline:
             if dels:
                 parts.append(f"удалено {len(dels)}")
             msg = "Админка: таблица каталога, " + ", ".join(parts)
+            new_by_id = {p["id"]: p for p in products_new}
+            old_by_id = {p["id"]: p for p in products}
+            log_entries = []
+            for ch in d["changes"]:
+                log_entries.append(journal.entry("import-edit", new_by_id.get(ch["id"]) or old_by_id.get(ch["id"]), [
+                    {"field": f["field"], "label": journal.LABELS.get(f["field"], f.get("label")),
+                     "old": journal.show("x", f.get("old")), "new": journal.show("x", f.get("new"))}
+                    for f in ch["fields"]]))
+            for a in d["added"]:
+                p_new = new_by_id.get(a["id"])
+                log_entries.append(journal.entry("import-add", p_new, journal.field_diff(None, p_new)))
+            for x in dels:
+                p_old = old_by_id.get(x["id"]) or x
+                rec_old = del_mids.get(x["id"])
+                log_entries.append(journal.entry("import-delete", p_old, note="пост в канале тоже удаляется" if rec_old else "",
+                                                 post=rec_old[0] if rec_old else None))
+            log_entries.append(journal.entry("import", None, note=", ".join(parts),  # summary on top (newest first)
+                                             articles=[x.get("article") for x in d["changes"] + d["added"] + dels][:200]))
+            files[journal.LOG] = journal.append(repo, log_entries)
             try:
                 res = repo.commit(files, msg)
                 break
