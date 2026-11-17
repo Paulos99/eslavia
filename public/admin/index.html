@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex, nofollow, noarchive" />
+  <meta name="theme-color" content="#faf8f6" />
+  <title>Кабинет каталога · ЭСЛАВИЯ</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="./admin.css" />
+  <script src="./config.js"></script>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-left" viewBox="0 0 24 24"><path d="M14.5 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24"><path d="M9.5 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 4l9 16H3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 10v4.5M12 17.2v.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8.5h3.2L9 6h6l1.8 2.5H20V18H4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="i-grip" viewBox="0 0 24 24"><g fill="currentColor"><circle cx="9" cy="7" r="1.3"/><circle cx="15" cy="7" r="1.3"/><circle cx="9" cy="12" r="1.3"/><circle cx="15" cy="12" r="1.3"/><circle cx="9" cy="17" r="1.3"/><circle cx="15" cy="17" r="1.3"/></g></symbol>
+  </svg>
+
+  <main id="login" class="login" hidden>
+    <form class="login__card" id="login-form" autocomplete="on">
+      <img src="./logo.svg" alt="ЭСЛАВИЯ" class="login__logo" width="160" height="46" />
+      <h1 class="login__title">Кабинет каталога</h1>
+      <p class="login__lead">Здесь добавляются и меняются модели. Сайт, оптовый прайс и канал в Telegram обновятся сами.</p>
+      <input type="text" name="username" value="eslavia-admin" autocomplete="username" hidden />
+      <label class="field">
+        <span class="field__label">Пароль</span>
+        <input id="password" name="password" type="password" autocomplete="current-password" required autocapitalize="off" spellcheck="false" />
+      </label>
+      <p class="form-error" id="login-error" role="alert" hidden></p>
+      <button class="btn btn--primary btn--wide" type="submit" id="login-btn">Войти</button>
+    </form>
+  </main>
+
+  <div id="app" class="app" hidden>
+    <header class="bar">
+      <img src="./logo.svg" alt="ЭСЛАВИЯ" class="bar__logo" width="112" height="32" />
+      <div class="bar__meta" id="bar-meta"></div>
+      <button class="btn btn--ghost btn--small" id="logout" type="button">Выйти</button>
+    </header>
+
+    <section class="catalog" id="catalog">
+      <div class="catalog__head">
+        <h1 class="catalog__title">Модели <span id="count" class="catalog__count"></span></h1>
+        <button class="btn btn--primary" id="add-btn" type="button"><svg class="ico"><use href="#i-plus"/></svg>Добавить модель</button>
+      </div>
+      <div class="tools">
+        <label class="search">
+          <svg class="ico"><use href="#i-search"/></svg>
+          <input id="search" type="search" placeholder="Артикул или название" autocomplete="off" enterkeyhint="search" />
+        </label>
+        <div class="filters" id="filters" role="tablist" aria-label="Категории"></div>
+      </div>
+      <p class="notice" id="mode-note" hidden></p>
+      <ul class="list" id="list" aria-live="polite"></ul>
+      <p class="empty" id="empty" hidden>Ничего не нашлось. Проверьте артикул или сбросьте категорию.</p>
+    </section>
+  </div>
+
+  <section class="editor" id="editor" hidden aria-labelledby="ed-title">
+    <form class="editor__form" id="ed-form" novalidate>
+      <header class="editor__bar">
+        <button type="button" class="btn btn--ghost btn--icon" id="ed-close" aria-label="Закрыть без сохранения"><svg class="ico"><use href="#i-close"/></svg></button>
+        <h2 id="ed-title" class="editor__title">Новая модель</h2>
+        <a id="ed-post" class="editor__post" target="_blank" rel="noopener" hidden>Пост в канале</a>
+      </header>
+
+      <div class="editor__body">
+        <div class="group">
+          <div class="group__head">
+            <h3 class="group__title">Фото</h3>
+            <p class="group__hint">Первые три фото уходят в пост канала, первое стоит на обложке и в прайсе. Порядок меняется перетаскиванием или стрелками.</p>
+          </div>
+          <ol class="photos" id="photos"></ol>
+          <label class="photo-add">
+            <input id="photo-input" type="file" accept="image/*" multiple />
+            <svg class="ico"><use href="#i-camera"/></svg><span>Добавить фото</span>
+          </label>
+          <p class="field__error" id="err-photos" hidden></p>
+        </div>
+
+        <div class="group grid2">
+          <label class="field">
+            <span class="field__label">Артикул</span>
+            <input id="f-article" required autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="М-128А" />
+            <span class="field__error" id="err-article" hidden></span>
+          </label>
+          <label class="field">
+            <span class="field__label">Категория</span>
+            <select id="f-category" required></select>
+          </label>
+          <label class="field span2">
+            <span class="field__label">Название</span>
+            <input id="f-name" required autocomplete="off" placeholder="платье домашнее М-128А" />
+            <span class="field__help">Так модель подписана на сайте и в канале. Артикул в конце названия.</span>
+            <span class="field__error" id="err-name" hidden></span>
+          </label>
+          <label class="field">
+            <span class="field__label">Оптовая цена, ₽</span>
+            <input id="f-opt" inputmode="decimal" required autocomplete="off" />
+            <span class="field__error" id="err-opt" hidden></span>
+          </label>
+          <label class="field">
+            <span class="field__label">Розничная цена, ₽</span>
+            <input id="f-retail" inputmode="decimal" required autocomplete="off" />
+            <span class="field__error" id="err-retail" hidden></span>
+          </label>
+        </div>
+
+        <div class="group">
+          <div class="group__head">
+            <h3 class="group__title">Размеры</h3>
+            <p class="group__hint">Отметьте отдельные размеры или пары. Свой вариант можно дописать ниже.</p>
+          </div>
+          <div class="chips" id="sizes-single" aria-label="Размеры"></div>
+          <div class="chips chips--pairs" id="sizes-pair" aria-label="Пары размеров"></div>
+          <div class="size-custom">
+            <input id="size-extra" placeholder="Например, 72-74" inputmode="numeric" autocomplete="off" />
+            <button type="button" class="btn btn--quiet btn--small" id="size-extra-add">Добавить</button>
+          </div>
+          <p class="size-picked" id="size-picked"></p>
+          <p class="field__error" id="err-sizes" hidden></p>
+        </div>
+
+        <div class="group grid2">
+          <label class="field span2">
+            <span class="field__label">Цвета</span>
+            <input id="f-colors" autocomplete="off" placeholder="белый, черный, синий" />
+            <span class="field__help">Через запятую.</span>
+          </label>
+          <label class="field">
+            <span class="field__label">Материал</span>
+            <input id="f-material" autocomplete="off" placeholder="хлопок" list="materials" />
+            <datalist id="materials"><option value="хлопок"></option><option value="кулирка"></option><option value="интерлок"></option><option value="вискоза"></option><option value="футер"></option></datalist>
+          </label>
+          <label class="field">
+            <span class="field__label">Наличие</span>
+            <select id="f-avail"><option>Есть в наличии</option><option>Под заказ</option><option>Нет в наличии</option></select>
+          </label>
+          <label class="field span2">
+            <span class="field__label">Описание</span>
+            <textarea id="f-desc" rows="5"></textarea>
+          </label>
+        </div>
+
+        <div class="group group--danger" id="danger" hidden>
+          <h3 class="group__title">Удаление</h3>
+          <p class="group__hint">Модель пропадёт с сайта, из прайса и каталога в Telegram.</p>
+          <label class="check"><input type="checkbox" id="del-post" /> <span>Удалить и пост в канале</span></label>
+          <button type="button" class="btn btn--danger" id="del-btn">Удалить модель</button>
+        </div>
+      </div>
+
+      <footer class="editor__foot">
+        <p class="form-error" id="ed-error" role="alert" hidden></p>
+        <button class="btn btn--primary btn--wide" type="submit" id="save-btn">Сохранить и опубликовать</button>
+      </footer>
+    </form>
+  </section>
+
+  <section class="publish" id="publish" hidden role="dialog" aria-modal="true" aria-labelledby="pub-title">
+    <div class="publish__card">
+      <h2 class="publish__title" id="pub-title">Публикуем</h2>
+      <ol class="steps" id="steps"></ol>
+      <div class="publish__result" id="pub-result"></div>
+      <div class="publish__actions">
+        <button class="btn btn--primary" id="pub-done" type="button" hidden>Готово</button>
+      </div>
+    </div>
+  </section>
+
+  <dialog class="confirm" id="confirm">
+    <form method="dialog" class="confirm__card">
+      <h2 class="confirm__title" id="confirm-title">Удалить модель?</h2>
+      <p class="confirm__text" id="confirm-text"></p>
+      <div class="confirm__actions">
+        <button class="btn btn--ghost" value="cancel">Отмена</button>
+        <button class="btn btn--danger" value="ok" id="confirm-ok">Удалить</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="./admin.js"></script>
+</body>
+</html>

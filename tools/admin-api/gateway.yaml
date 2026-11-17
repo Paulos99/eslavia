@@ -1,0 +1,17 @@
+openapi: 3.0.0
+info:
+  title: eslavia-admin-gw
+  version: 1.0.0
+paths:
+  /api/{proxy+}:
+    x-yc-apigateway-any-method:
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema: {type: string}
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4erap1jhoq7skqs7c7e
+        tag: $latest
+        service_account_id: aje5v001p7se6j8f1n74

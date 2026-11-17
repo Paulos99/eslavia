@@ -1,0 +1,81 @@
+"""Telegram Bot API calls for the channel posts. Dry-run mode records payloads instead of sending."""
+from __future__ import annotations
+
+import itertools
+import json
+import time
+
+import requests
+
+_fake_ids = itertools.count(int(time.time()) % 100000 * 10 + 900000)
+
+
+class TgError(Exception):
+    pass
+
+
+class Telegram:
+    def __init__(self, token: str | None, chat_id: str, dry_run: bool = True):
+        self.token, self.chat_id, self.dry_run = token, chat_id, dry_run
+        self.log: list[dict] = []
+        if not dry_run and not token:
+            raise TgError("нет токена бота")
+
+    def _call(self, method: str, data: dict, files: dict | None = None):
+        entry = {"method": method, "data": {k: v for k, v in data.items()}}
+        if files:
+            entry["files"] = {k: f"{len(v[1])} bytes JPEG" for k, v in files.items()}
+        self.log.append(entry)
+        if self.dry_run:
+            if method == "sendMediaGroup":
+                n = len(json.loads(data["media"]))
+                return [{"message_id": next(_fake_ids)} for _ in range(n)]
+            return True
+        url = f"https://api.telegram.org/bot{self.token}/{method}"
+        for attempt in range(4):
+            try:
+                r = requests.post(url, data=data, files=files, timeout=(15, 120))
+                j = r.json()
+            except (requests.RequestException, ValueError) as e:
+                if attempt == 3:
+                    raise TgError(f"Telegram недоступен ({e.__class__.__name__})")
+                time.sleep(2 + attempt * 3)
+                continue
+            if j.get("ok"):
+                return j["result"]
+            desc = j.get("description", "")
+            if "message is not modified" in desc:
+                return True
+            retry = (j.get("parameters") or {}).get("retry_after")
+            if retry and attempt < 3:
+                time.sleep(min(int(retry), 30) + 1)
+                continue
+            raise TgError(f"Telegram: {desc}")
+        raise TgError("Telegram: нет ответа")
+
+    def send_album(self, jpegs: list[bytes], caption: str) -> list[int]:
+        media, files = [], {}
+        for n, data in enumerate(jpegs):
+            item = {"type": "photo", "media": f"attach://photo{n}"}
+            if n == 0:
+                item.update(caption=caption, parse_mode="HTML")
+            media.append(item)
+            files[f"photo{n}"] = (f"photo{n}.jpg", data, "image/jpeg")
+        res = self._call("sendMediaGroup", {"chat_id": self.chat_id,
+                                            "media": json.dumps(media, ensure_ascii=False)}, files)
+        return [m["message_id"] for m in res]
+
+    def edit_caption(self, message_id: int, caption: str) -> None:
+        self._call("editMessageCaption", {"chat_id": self.chat_id, "message_id": message_id,
+                                          "caption": caption, "parse_mode": "HTML"})
+
+    def edit_photo(self, message_id: int, jpeg: bytes, caption: str | None) -> None:
+        media = {"type": "photo", "media": "attach://photo"}
+        if caption is not None:
+            media.update(caption=caption, parse_mode="HTML")
+        self._call("editMessageMedia", {"chat_id": self.chat_id, "message_id": message_id,
+                                        "media": json.dumps(media, ensure_ascii=False)},
+                   {"photo": ("photo.jpg", jpeg, "image/jpeg")})
+
+    def delete(self, message_ids: list[int]) -> None:
+        self._call("deleteMessages", {"chat_id": self.chat_id, "message_ids": json.dumps(message_ids)})
