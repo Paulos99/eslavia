@@ -8,7 +8,7 @@ import re
 import time
 from concurrent.futures import ThreadPoolExecutor
 
-from . import appcat, catalog as c, images, pdfgen, xlsx
+from . import appcat, catalog as c, images, nav, pdfgen, xlsx
 from .gh import GitHubError, Repo
 from .tg import Telegram, TgError
 
@@ -532,13 +532,13 @@ class Pipeline:
                 failed[pid] = {"what": sorted(what), "reason": str(e), "mids": mids}
         return failed, done, posts_changed
 
-    def tg_retry(self, commit_suffix: str = "") -> dict:
+    def tg_retry(self, commit_suffix: str = "", force_nav: bool = False) -> dict:
         t0 = time.time()
         repo = self.site()
         repo.load_head()
         products, cats, posts = self._state(repo)
         queue = self._queue(repo)
-        if not queue["items"]:
+        if not queue["items"] and not force_nav:
             return {"ok": True, "sent": 0, "left": 0}
         tg = self.tg()
         if not tg.ping():
@@ -554,13 +554,25 @@ class Pipeline:
                 queue["items"].pop(pid)
         for pid, f in failed.items():
             self._queue_add(queue, {pid: f["what"]}, f["reason"], {pid: f.get("mids")})
+        # navigation post: re-post + pin when posts appeared or disappeared, else edit only if its text changed
+        nav_res = None
+        labels = [x for v in done.values() for x in v]
+        structural = force_nav or any(x in ("новый пост", "пост удалён") for x in labels)
+        if structural or done:
+            try:
+                nav_res = nav.update(tg, products, cats, posts, repost=structural)
+            except TgError as e:
+                nav_res = {"action": "failed", "error": str(e)}
         files = {TG_QUEUE: dumps_pretty(queue)}
         catalog_json = None
+        if nav_res and nav_res["action"] in ("reposted", "edited"):
+            files[TG_POSTS] = dumps_pretty(posts)
         if posts_changed:
             files[TG_POSTS] = dumps_pretty(posts)
             catalog_json = appcat.dumps(appcat.build(products, cats, posts))
             files[f"{SITE_APP}/data/catalog.json"] = catalog_json
-        res = repo.commit(files, "Канал: отправлены отложенные обновления постов" + commit_suffix)
+        msg = "Канал: отправлены отложенные обновления постов" if done else "Канал: пост с навигацией обновлён"
+        res = repo.commit(files, msg + commit_suffix)
         app = self.app()
         if app and catalog_json:
             try:
@@ -568,7 +580,7 @@ class Pipeline:
             except GitHubError as e:
                 print("app commit failed:", e)
         return {"ok": not failed, "sent": len(done), "left": len(failed), "head": res.get("sha"),
-                "done": done, "dry_run": tg.dry_run, "postsChanged": posts_changed}
+                "done": done, "dry_run": tg.dry_run, "postsChanged": posts_changed, "nav": nav_res}
 
     # -- files for download -------------------------------------------------
     def pdf(self, sha: str = "") -> dict:

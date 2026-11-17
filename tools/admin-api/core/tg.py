@@ -104,5 +104,23 @@ class Telegram:
                                         "media": json.dumps(media, ensure_ascii=False)},
                    {"photo": ("photo.jpg", jpeg, "image/jpeg")})
 
+    def send_text(self, text: str, keyboard: dict | None = None) -> int:
+        data = {"chat_id": self.chat_id, "text": text, "parse_mode": "HTML",
+                "link_preview_options": json.dumps({"is_disabled": True})}
+        if keyboard:
+            data["reply_markup"] = json.dumps(keyboard, ensure_ascii=False)
+        res = self._call("sendMessage", data)
+        return res["message_id"] if isinstance(res, dict) else next(_fake_ids)
+
+    def edit_text(self, message_id: int, text: str, keyboard: dict | None = None) -> None:
+        data = {"chat_id": self.chat_id, "message_id": message_id, "text": text, "parse_mode": "HTML",
+                "link_preview_options": json.dumps({"is_disabled": True})}
+        if keyboard:
+            data["reply_markup"] = json.dumps(keyboard, ensure_ascii=False)
+        self._call("editMessageText", data)
+
+    def pin(self, message_id: int) -> None:
+        self._call("pinChatMessage", {"chat_id": self.chat_id, "message_id": message_id, "disable_notification": "true"})
+
     def delete(self, message_ids: list[int]) -> None:
         self._call("deleteMessages", {"chat_id": self.chat_id, "message_ids": json.dumps(message_ids)})

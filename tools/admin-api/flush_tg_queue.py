@@ -3,7 +3,9 @@
 Yandex Cloud Functions cannot reach Telegram (api.telegram.org is filtered there), so the admin function
 queues failed post updates in the repo. Run this from any machine with Telegram access:
 
-    GITHUB_TOKEN=... TG_TOKEN_FILE=~/.secrets/eslavia_opt_bot.token python flush_tg_queue.py [--list]
+    GITHUB_TOKEN=... TG_TOKEN_FILE=~/.secrets/eslavia_opt_bot.token python flush_tg_queue.py [--list] [--nav]
+
+--nav (or FORCE_NAV=true) re-posts and pins the navigation post even if the queue is empty.
 
 Runs automatically in GitHub Actions: .github/workflows/tg-queue.yml (TG_TOKEN from repo secrets).
 """
@@ -33,7 +35,8 @@ def main() -> None:
     if "--list" in sys.argv:
         print(json.dumps(pipe.listing()["tgQueue"], ensure_ascii=False, indent=1))
         return
-    res = pipe.tg_retry(commit_suffix=os.environ.get("COMMIT_SUFFIX", ""))
+    force_nav = "--nav" in sys.argv or os.environ.get("FORCE_NAV", "").lower() in ("1", "true", "yes")
+    res = pipe.tg_retry(commit_suffix=os.environ.get("COMMIT_SUFFIX", ""), force_nav=force_nav)
     res.pop("dry_run", None)
     print(json.dumps(res, ensure_ascii=False, indent=1))
     out = os.environ.get("GITHUB_OUTPUT")
@@ -41,7 +44,7 @@ def main() -> None:
         with open(out, "a") as f:
             f.write(f"posts_changed={'true' if res.get('postsChanged') else 'false'}\n")
             f.write(f"left={res.get('left', 0)}\n")
-    if res.get("ok") is False and res.get("error"):
+    if (res.get("ok") is False and res.get("error")) or (res.get("nav") or {}).get("action") == "failed":
         sys.exit(1)
 
 
