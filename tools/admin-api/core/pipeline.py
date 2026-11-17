@@ -346,14 +346,12 @@ class Pipeline:
             failed, done, _ = self._tg_run(tg, {pid: jobs}, {pid: prod}, posts, img, time.time() + 100)
             if failed:
                 tg_action = "queued"
-                report["warnings"].append("Пост в канале не обновился, Telegram недоступен. Изменение поставлено в очередь.")
+                pass  # queued: shown in the Telegram step, sent by GitHub Actions
                 self._queue_commit(failed)
             else:
                 tg_action = ("edited: " + ", ".join(done.get(pid, []))) if done.get(pid) else "unchanged"
         elif rec and not jobs:
             tg_action = "unchanged"
-        if tg_action == "queued" and not any("очеред" in w for w in report["warnings"]):
-            report["warnings"].append("Telegram сейчас недоступен с сервера. Пост обновится, когда очередь будет отправлена.")
         report["steps"].append({"step": "telegram", "action": tg_action, "dry_run": tg.dry_run,
                                 "post": appcat.post_url(posts, pid), "calls": tg.log})
 
@@ -418,7 +416,7 @@ class Pipeline:
                 tg_action = "deleted"
             except TgError as e:
                 tg_action = "queued"
-                report["warnings"].append(f"Пост в канале не удалился ({e}), удаление поставлено в очередь.")
+                report["warnings"].append("Пост в канале удалится автоматически через GitHub, обычно за пару минут.")
                 self._queue_commit({pid: {"what": ["delete"], "reason": str(e), "mids": rec}})
         report["steps"].append({"step": "telegram", "action": tg_action, "dry_run": tg.dry_run, "calls": tg.log})
         app = self.app()
@@ -534,7 +532,7 @@ class Pipeline:
                 failed[pid] = {"what": sorted(what), "reason": str(e), "mids": mids}
         return failed, done, posts_changed
 
-    def tg_retry(self) -> dict:
+    def tg_retry(self, commit_suffix: str = "") -> dict:
         t0 = time.time()
         repo = self.site()
         repo.load_head()
@@ -562,7 +560,7 @@ class Pipeline:
             files[TG_POSTS] = dumps_pretty(posts)
             catalog_json = appcat.dumps(appcat.build(products, cats, posts))
             files[f"{SITE_APP}/data/catalog.json"] = catalog_json
-        res = repo.commit(files, "Канал: отправлены отложенные обновления постов")
+        res = repo.commit(files, "Канал: отправлены отложенные обновления постов" + commit_suffix)
         app = self.app()
         if app and catalog_json:
             try:
@@ -570,7 +568,7 @@ class Pipeline:
             except GitHubError as e:
                 print("app commit failed:", e)
         return {"ok": not failed, "sent": len(done), "left": len(failed), "head": res.get("sha"),
-                "done": done, "dry_run": tg.dry_run}
+                "done": done, "dry_run": tg.dry_run, "postsChanged": posts_changed}
 
     # -- files for download -------------------------------------------------
     def pdf(self, sha: str = "") -> dict:
@@ -768,13 +766,12 @@ class Pipeline:
             if failed:
                 self._queue_commit(failed)
                 tg_action = "queued"
-                report["warnings"].append(f"Не все посты в канале обновились ({len(failed)}), они поставлены в очередь.")
+                pass  # queued: sent by GitHub Actions
             else:
                 tg_action = f"edited: {len(done)} пост." if done else "unchanged"
         elif jobs:
             tg_action = "queued"
-            report["warnings"].append(f"Telegram сейчас недоступен с сервера. Посты ({len(jobs)}) обновятся, "
-                                      "когда очередь будет отправлена.")
+            pass  # queued in the same commit: sent by GitHub Actions (.github/workflows/tg-queue.yml)
         report["steps"].append({"step": "telegram", "action": tg_action, "dry_run": tg.dry_run,
                                 "jobs": len(jobs), "done": len(done), "calls": tg.log[:50]})
         app = self.app()

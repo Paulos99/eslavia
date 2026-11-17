@@ -419,11 +419,10 @@
     else setStep("site", "ok", site ? `сохранено <a href="${esc(site.url || "#")}" target="_blank" rel="noopener">${esc(String(site.sha).slice(0, 7))}</a>` : "сохранено");
     const tg = by.telegram || {};
     const dryText = { posted: "пост не отправлен", failed: "не получилось, см. ниже", deleted: "пост не удалён", kept: "пост оставлен", unchanged: "менять не понадобилось" };
-    if (tg.action === "queued") dryText.queued = "Telegram недоступен с сервера, обновление в очереди";
-    const tgText = tg.action === "queued" ? "Telegram недоступен с сервера, обновление поставлено в очередь" : tg.dry_run && dryText[tg.action] ? dryText[tg.action] : tg.dry_run && String(tg.action || "").startsWith("edited") ? "пост не изменён (" + tg.action.slice(8) + ")" : { posted: "новый пост опубликован", unchanged: "менять не понадобилось", failed: "не получилось, см. ниже", kept: "пост оставлен", deleted: "пост удалён" }[tg.action]
+    const tgText = tg.action === "queued" ? "обновится автоматически через GitHub, обычно за пару минут" : tg.dry_run && dryText[tg.action] ? dryText[tg.action] : tg.dry_run && String(tg.action || "").startsWith("edited") ? "пост не изменён (" + tg.action.slice(8) + ")" : { posted: "новый пост опубликован", unchanged: "менять не понадобилось", failed: "не получилось, см. ниже", kept: "пост оставлен", deleted: "пост удалён" }[tg.action]
       || (String(tg.action || "").startsWith("edited") ? "обновлено: " + tg.action.slice(8) : "без изменений");
     const tgLink = tg.post && !tg.dry_run ? ` · <a href="${esc(tg.post)}" target="_blank" rel="noopener">открыть пост</a>` : "";
-    setStep("telegram", tg.action === "failed" ? "fail" : tg.dry_run || tg.action === "queued" ? "warn" : "ok", (tg.dry_run ? "тестовый режим: " : "") + tgText + tgLink);
+    setStep("telegram", tg.action === "failed" ? "fail" : tg.action === "queued" ? "info" : tg.dry_run ? "warn" : "ok", (tg.dry_run ? "тестовый режим: " : "") + tgText + tgLink);
     if (by.app) setStep("app", "ok", "обновлён");
     else setStep("app", (r.warnings || []).some((w) => /Mini App/.test(w)) ? "fail" : "ok", (r.warnings || []).some((w) => /Mini App/.test(w)) ? "не обновился" : "обновлён вместе с сайтом");
     if (r.warnings && r.warnings.length) {
@@ -611,15 +610,11 @@
     $("#tg-queue").hidden = !q.length;
     if (!q.length) return;
     const arts = q.slice(0, 6).map((x) => x.article).join(", ") + (q.length > 6 ? " и ещё " + (q.length - 6) : "");
-    $("#tg-queue-text").textContent = `Telegram был недоступен с сервера, ${q.length} ${plural(q.length, "пост ждёт", "поста ждут", "постов ждут")} обновления: ${arts}.`;
+    $("#tg-queue-text").textContent = `${q.length} ${plural(q.length, "пост в канале обновится", "поста в канале обновятся", "постов в канале обновятся")} автоматически в течение пары минут: ${arts}.`;
   }
   $("#tg-retry").addEventListener("click", async (e) => {
-    const b = e.currentTarget; b.disabled = true; const label = b.textContent; b.textContent = "Отправляем…";
-    try {
-      const r = await api("/tg-retry", { body: {} });
-      if (r.ok) { await reload(); fileStatus(r.sent ? `Посты обновлены: ${r.sent}` : ""); }
-      else $("#tg-queue-text").textContent = (r.error || "Не получилось") + ". Ждут обновления: " + r.left + ".";
-    } catch (ex) { $("#tg-queue-text").textContent = ex.message; }
+    const b = e.currentTarget; b.disabled = true; const label = b.textContent; b.textContent = "Проверяем…";
+    try { await reload(); if (!(state.data.tgQueue || []).length) fileStatus("Посты в канале обновлены"); }
     finally { b.disabled = false; b.textContent = label; }
   });
   function plural(n, one, few, many) { const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? many : b > 1 && b < 5 ? few : b === 1 ? one : many; }
