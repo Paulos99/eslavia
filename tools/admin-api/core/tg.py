@@ -119,6 +119,19 @@ class Telegram:
             data["reply_markup"] = json.dumps(keyboard, ensure_ascii=False)
         self._call("editMessageText", data)
 
+    def blank_photo(self, message_id: int, jpeg: bytes | None = None, file_id: str | None = None) -> str | None:
+        """Replace a photo with the placeholder; no caption, no buttons. Returns the file_id for reuse."""
+        media = {"type": "photo", "media": file_id or "attach://photo"}
+        files = None if file_id else {"photo": ("blank.jpg", jpeg, "image/jpeg")}
+        res = self._call("editMessageMedia", {"chat_id": self.chat_id, "message_id": message_id,
+                                              "media": json.dumps(media)}, files)
+        if isinstance(res, dict) and res.get("photo"):
+            return res["photo"][-1]["file_id"]
+        return file_id
+
+    def clear_caption(self, message_id: int) -> None:
+        self._call("editMessageCaption", {"chat_id": self.chat_id, "message_id": message_id, "caption": ""})
+
     def unpin(self, message_id: int) -> None:
         self._call("unpinChatMessage", {"chat_id": self.chat_id, "message_id": message_id})
 

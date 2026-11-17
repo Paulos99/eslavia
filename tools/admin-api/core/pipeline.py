@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+from pathlib import Path
 import json
 import re
 import time
@@ -412,7 +413,7 @@ class Pipeline:
         tg_action = "kept"
         if rec and drop_post:
             try:
-                tg.delete(rec)
+                self._tg_remove(tg, rec)
                 tg_action = "deleted"
             except TgError as e:
                 tg_action = "queued"
@@ -495,8 +496,9 @@ class Pipeline:
             try:
                 if "delete" in what:
                     if mids:
-                        tg.delete(mids)
-                    done[pid] = [names["delete"]]
+                        done[pid] = [self._tg_remove(tg, mids)]
+                    else:
+                        done[pid] = [names["delete"]]
                     continue
                 p = by_id.get(pid)
                 if not p:
@@ -532,6 +534,31 @@ class Pipeline:
                 failed[pid] = {"what": sorted(what), "reason": str(e), "mids": mids}
         return failed, done, posts_changed
 
+    @staticmethod
+    def _tg_remove(tg: Telegram, mids: list[int]) -> str:
+        """Delete a product post; Telegram refuses for messages older than 48 h, then blank it instead:
+        every photo of the album becomes the placeholder, caption and buttons go away."""
+        try:
+            tg.delete(mids)
+            return "пост удалён"
+        except TgError as e:
+            if "недоступен" in str(e):
+                raise
+        blank = (Path(__file__).resolve().parent.parent / "assets" / "blank.jpg").read_bytes()
+        file_id, ok = None, True
+        for mid in mids:
+            try:
+                file_id = tg.blank_photo(mid, blank, file_id)
+            except TgError as e:
+                if "недоступен" in str(e):
+                    raise
+                ok = False
+                try:
+                    tg.clear_caption(mid)
+                except TgError:
+                    pass
+        return "пост очищен" if ok else "пост очищен частично"
+
     def tg_retry(self, commit_suffix: str = "", force_nav: bool = False) -> dict:
         t0 = time.time()
         repo = self.site()
@@ -558,7 +585,8 @@ class Pipeline:
         # navigation post: re-post + pin when posts appeared or disappeared, else edit only if its text changed
         nav_res = None
         labels = [x for v in done.values() for x in v]
-        structural = force_nav or rotate or any(x in ("новый пост", "пост удалён") for x in labels)
+        structural = force_nav or rotate or any(x in ("новый пост", "пост удалён", "пост очищен", "пост очищен частично")
+                                                for x in labels)
         if structural or done:
             try:
                 nav_res = nav.update(tg, products, cats, posts, repost=structural)
