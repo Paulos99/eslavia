@@ -677,6 +677,24 @@
    "oldPost": 322,
    "base": "c800fdab498c095a549fa3e6b1f61920ca1e9b95",
    "batch": "3dab2dfe"
+  },
+  {
+   "t": "2026-11-26T21:00:52+03:00",
+   "action": "edit",
+   "id": "h-300bk",
+   "article": "Х-300БК",
+   "name": "халат домашний на молнии Х-300БК",
+   "changes": [
+    {
+     "field": "photos",
+     "label": "Фото",
+     "old": "",
+     "new": "6 шт."
+    }
+   ],
+   "src": "Кабинет",
+   "base": "52b1dbdba633f9cefc27bedbededcfb5e6a4f7d8",
+   "batch": "46904881"
   }
  ]
 }
