@@ -256,8 +256,13 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .imp-err { width: 100%; border-collapse: collapse; font-size: 13px; }
 .imp-err td { padding: 6px 8px 6px 0; border-bottom: 1px solid var(--seam); vertical-align: top; }
 .imp-err td:first-child { white-space: nowrap; color: var(--alarm); font-weight: 600; }
+.imp-newcat { margin: 0 0 12px; padding: 12px 14px; background: var(--sage); color: var(--sage-ink); }
+.imp-newcat p { margin: 0 0 6px; font-weight: 600; font-size: 14px; }
+.imp-newcat ul { margin: 0; padding-left: 18px; font-size: 13px; }
 .import__confirm { margin-top: 14px; padding: 12px 14px; border: 1px solid var(--alarm); color: var(--alarm); font-weight: 600; font-size: 14px; display: flex; gap: 10px; align-items: flex-start; }
 .import__confirm input { margin-top: 3px; accent-color: var(--alarm); width: 18px; height: 18px; flex: none; }
+.import__confirm--add { border-color: var(--sage-ink); color: var(--sage-ink); }
+.import__confirm--add input { accent-color: var(--sage-ink); }
 .import__actions { gap: 8px; position: sticky; bottom: -24px; padding: 12px 0 0; background: var(--paper); }
 .pdf-link { display: inline-flex; margin-top: 12px; }
 @media (max-width: 520px) {

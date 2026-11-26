@@ -823,7 +823,11 @@ class Pipeline:
             dels = d["missing"]
             if dels and int(payload.get("confirmDelete") or 0) != len(dels):
                 raise UserError(f"Подтвердите удаление {len(dels)} мод.")
-            if not (d["changes"] or d["added"] or dels):
+            new_names = [x["name"] for x in d.get("newCategories") or []]
+            confirmed = [str(x).strip() for x in (payload.get("confirmCategories") or []) if str(x).strip()]
+            if confirmed != new_names:
+                raise UserError("Подтвердите новые категории: " + ", ".join(new_names))
+            if not (d["changes"] or d["added"] or dels or new_names):
                 return {"unchanged": True, "steps": [], "warnings": []}
             del_ids = {x["id"] for x in dels}
             index = {p["id"]: i for i, p in enumerate(products)}
@@ -872,6 +876,21 @@ class Pipeline:
                 idx = max([i for i, p in enumerate(new_list) if p.get("category") == cat], default=len(new_list) - 1)
                 new_list.insert(idx + 1, prod)
             products_new = new_list
+            if new_names:
+                have = {x.get("name", "").lower() for x in cats if isinstance(x, dict)}
+                used_ids = {x.get("id") for x in cats if isinstance(x, dict)}
+                for name in new_names:
+                    if name.lower() in have:
+                        continue
+                    base = c.product_id(name) or "category"
+                    cid = base
+                    n = 2
+                    while cid in used_ids:
+                        cid = f"{base}-{n}"
+                        n += 1
+                    cats.append({"id": cid, "name": name, "count": 0, "image": ""})
+                    used_ids.add(cid)
+                    have.add(name.lower())
             cats_new = c.recount_categories(cats, products_new)
 
             # deletions: files + posts, as in /delete with deletePost
@@ -925,6 +944,8 @@ class Pipeline:
                 parts.append(f"добавлено {len(d['added'])}")
             if dels:
                 parts.append(f"удалено {len(dels)}")
+            if new_names:
+                parts.append("новые категории: " + ", ".join(new_names))
             msg = "Админка: таблица каталога, " + ", ".join(parts)
             new_by_id = {p["id"]: p for p in products_new}
             old_by_id = {p["id"]: p for p in products}

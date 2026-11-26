@@ -21,7 +21,7 @@ COLUMNS = [
     ("id", "Код модели", 14, False, "Служебный код, по нему строка связана с моделью. Не меняйте. У новой модели оставьте пустым."),
     ("article", "Артикул", 13, True, "Обязательно. Должен быть уникальным."),
     ("name", "Название", 34, True, "Обязательно. Так модель подписана на сайте, в прайсе и в канале."),
-    ("category", "Категория", 18, True, "Обязательно, выбор из списка."),
+    ("category", "Категория", 18, True, "Обязательно. Если категории нет в списке, впишите её: кабинет спросит, добавлять ли её."),
     ("extraCategories", "Доп. категории", 18, True, "Если модель должна показываться ещё в других разделах. Через «;»."),
     ("priceWholesale", "Опт, ₽", 10, True, "Обязательно. Цена в прайсе, в канале и в Mini App."),
     ("priceRetail", "Розница, ₽", 11, True, "Обязательно. Цена на сайте."),
@@ -125,7 +125,8 @@ def export(products: list[dict], categories: list[str], posts: dict, image_base:
     lists.sheet_state = "hidden"
     col_of = {k: get_column_letter(i) for i, (k, *_) in enumerate(COLUMNS, 1)}
     dv_cat = DataValidation(type="list", formula1=f"='Списки'!$A$1:$A${len(categories)}", allow_blank=False,
-                            showErrorMessage=True, errorTitle="Категория", error="Выберите категорию из списка")
+                            showErrorMessage=True, errorStyle="warning", errorTitle="Новая категория",
+                            error="Этой категории нет в списке. Если её нужно добавить, оставьте название: кабинет спросит подтверждение.")
     dv_av = DataValidation(type="list", formula1=f"='Списки'!$B$1:$B${len(AVAILABILITY)}", allow_blank=False,
                            showErrorMessage=True, errorTitle="Наличие", error="Выберите значение из списка")
     last = max(n + 200, 300)
@@ -147,6 +148,9 @@ def export(products: list[dict], categories: list[str], posts: dict, image_base:
         ("", "4. После применения сайт, оптовый прайс, Mini App и посты в канале обновятся одним сохранением."),
         ("", ""),
         ("Серые столбцы", "Только для сведения: код модели, фото, ссылка на пост. Их правка не учитывается."),
+        ("Новая категория", "Если нужного раздела нет в списке, впишите его название в столбец «Категория» "
+                            "или «Доп. категории». Excel может предупредить, что значения нет в списке: "
+                            "нажмите «Да». В кабинете появится вопрос, добавлять ли эту категорию."),
         ("Новая модель", "Новая строка с пустым кодом. Нужны артикул, название, категория, обе цены и размеры. "
                          "Фото и пост в канале добавляются потом в карточке модели."),
         ("Удаление", "Чтобы удалить модель, удалите её строку целиком. Перед применением кабинет покажет "
@@ -257,6 +261,29 @@ def diff(data: bytes, products: list[dict], categories: list[str]) -> dict:
     def err(row, msg, col=None):
         errors.append({"row": row, "column": LABEL.get(col, "") if col else "", "message": msg})
 
+    # lower name -> first spelling and the rows that use it
+    fresh: dict[str, dict] = {}
+
+    def resolve_category(raw, rn, col="category") -> str | None:
+        name = _ws(raw)
+        if not name:
+            err(rn, "Не указана категория", col)
+            return None
+        if len(name) > 60:
+            err(rn, "Название категории длиннее 60 знаков", col)
+            return None
+        hit = next((x for x in categories if x.lower() == name.lower()), None)
+        if hit:
+            return hit
+        key = name.lower()
+        rec = fresh.get(key)
+        if rec:
+            if rn not in rec["rows"]:
+                rec["rows"].append(rn)
+            return rec["name"]
+        fresh[key] = {"name": name, "rows": [rn]}
+        return name
+
     for r in rows:
         rn = r["_row"]
         rid = _ws(_num_text(r["id"])) if r.get("id") is not None else ""
@@ -279,22 +306,15 @@ def diff(data: bytes, products: list[dict], categories: list[str]) -> dict:
                 if key in ("article", "name", "material", "sourceUrl"):
                     new[key] = _ws(_num_text(v)) if v is not None else ""
                 elif key == "category":
-                    new[key] = _ws(v)
-                    if new[key] not in categories:
-                        # tolerate case differences
-                        hit = next((x for x in categories if x.lower() == new[key].lower()), None)
-                        if hit:
-                            new[key] = hit
-                        else:
-                            err(rn, "Категория не из списка" if new[key] else "Не указана категория", key)
+                    got = resolve_category(v, rn)
+                    if got:
+                        new[key] = got
                 elif key == "extraCategories":
                     lst = []
                     for x in _split(v, r"[;,\n]"):
-                        hit = next((cat for cat in categories if cat.lower() == x.lower()), None)
-                        if not hit:
-                            err(rn, f"Нет такой категории: «{x}»", key)
-                        elif hit not in lst:
-                            lst.append(hit)
+                        got = resolve_category(x, rn, "extraCategories")
+                        if got and got not in lst:
+                            lst.append(got)
                     new[key] = lst
                 elif key in ("priceWholesale", "priceRetail"):
                     m = _money(v)
@@ -432,7 +452,8 @@ def diff(data: bytes, products: list[dict], categories: list[str]) -> dict:
     return {"changes": changes, "added": added, "missing": missing, "errors": errors, "warnings": warnings,
             "rowsRead": len(rows), "orderChanged": order_changed, "order": order_ids if order_changed else None,
             "columns": [LABEL[k] for k in EDITABLE if k in present],
-            "unknownColumns": []}
+            "unknownColumns": [],
+            "newCategories": [{"name": rec["name"], "rows": rec["rows"]} for rec in fresh.values()]}
 
 
 def _old_value(p: dict, key: str, index: dict):

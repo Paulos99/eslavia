@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="./admin.css?v=7" />
+  <link rel="stylesheet" href="./admin.css?v=8" />
   <script src="./config.js?v=7"></script>
 </head>
 <body>
@@ -223,6 +223,7 @@
       <h2 class="publish__title" id="imp-title">Изменения из таблицы</h2>
       <p class="import__file" id="imp-file"></p>
       <div id="imp-body"></div>
+      <label class="check import__confirm import__confirm--add" id="imp-cat-confirm" hidden><input type="checkbox" id="imp-cat-check" /> <span id="imp-cat-label"></span></label>
       <label class="check import__confirm" id="imp-del-confirm" hidden><input type="checkbox" id="imp-del-check" /> <span id="imp-del-label"></span></label>
       <div class="publish__actions import__actions">
         <button class="btn btn--ghost" id="imp-cancel" type="button">Отмена</button>
@@ -242,6 +243,6 @@
     </form>
   </dialog>
 
-  <script src="./admin.js?v=7"></script>
+  <script src="./admin.js?v=8"></script>
 </body>
 </html>

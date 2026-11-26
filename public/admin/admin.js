@@ -558,6 +558,15 @@
     if (n.add) {
       h += `<h3 class="imp-h">Новые модели</h3><ul class="imp-list">${d.added.map((x) => `<li class="imp-item"><div class="imp-item__head">${esc(x.article)}<span>строка ${x.row}, пока без фото</span></div></li>`).join("")}</ul>`;
     }
+    const fresh = d.newCategories || [];
+    if (fresh.length) {
+      h += `<div class="imp-newcat"><p>Этих категорий нет в каталоге:</p><ul>${fresh.map((x) => {
+        const rows = x.rows || [];
+        const shown = rows.slice(0, 8).join(", ");
+        const more = rows.length > 8 ? ` и ещё ${rows.length - 8}` : "";
+        return `<li><b>${esc(x.name)}</b> — строки ${shown}${more}</li>`;
+      }).join("")}</ul></div>`;
+    }
     const warns = (d.warnings || []).filter((w) => !/новая модель/.test(w));
     if (warns.length) h += `<ul class="warn-list">${warns.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>`;
     $("#imp-body").innerHTML = h;
@@ -565,16 +574,31 @@
     conf.hidden = !(n.del && !n.err);
     $("#imp-del-check").checked = false;
     $("#imp-del-label").textContent = `Удалить ${n.del} ${plural(n.del, "модель", "модели", "моделей")} с сайта, из прайса и из канала`;
+    const freshOk = (d.newCategories || []).length && !n.err;
+    const catConf = $("#imp-cat-confirm");
+    catConf.hidden = !freshOk;
+    $("#imp-cat-check").checked = false;
+    $("#imp-cat-label").textContent = (d.newCategories || []).length === 1
+      ? `Добавить категорию «${d.newCategories[0].name}»`
+      : `Добавить эти категории (${(d.newCategories || []).length})`;
     if (n.del && !n.err) $("#imp-body").insertAdjacentHTML("beforeend", `<p class="imp-note">Если посту больше двух дней, Telegram не даст удалить его автоматически. Тогда мы такой пост очистим, а здесь появится напоминание удалить пост вручную.</p>`);
     const apply = $("#imp-apply");
-    apply.hidden = !total || n.err > 0;
+    apply.hidden = !(total || freshOk) || n.err > 0;
     apply.textContent = "Применить";
-    apply.disabled = n.del > 0;
+    gateApply();
     $("#imp-cancel").textContent = total && !n.err ? "Отмена" : "Закрыть";
     $("#import").hidden = false;
     $("#import .publish__card").scrollTop = 0;
   }
-  $("#imp-del-check").addEventListener("change", (e) => { $("#imp-apply").disabled = !e.target.checked; });
+  function gateApply() {
+    const d = imp.preview;
+    if (!d) return;
+    const needDel = d.missing.length > 0 && !$("#imp-del-check").checked;
+    const needCat = (d.newCategories || []).length > 0 && !$("#imp-cat-check").checked;
+    $("#imp-apply").disabled = needDel || needCat;
+  }
+  $("#imp-del-check").addEventListener("change", gateApply);
+  $("#imp-cat-check").addEventListener("change", gateApply);
   $("#imp-cancel").addEventListener("click", () => { $("#import").hidden = true; imp.data = null; imp.preview = null; });
   $("#imp-apply").addEventListener("click", async () => {
     const d = imp.preview; if (!d || state.busy) return;
@@ -590,7 +614,12 @@
     setStep("pdf", "run");
     const t = setTimeout(() => { setStep("pdf", "ok"); setStep("site", "run"); }, 6000);
     try {
-      const r = await api("/import-apply", { body: { data: imp.data, signature: d.signature, confirmDelete: d.missing.length } });
+      const r = await api("/import-apply", { body: {
+        data: imp.data,
+        signature: d.signature,
+        confirmDelete: d.missing.length,
+        confirmCategories: (d.newCategories || []).map((x) => x.name),
+      } });
       clearTimeout(t);
       if (r.unchanged) { setStep("pdf", "ok", "не понадобилось"); setStep("site", "ok", "изменений нет"); setStep("telegram", "ok", "без изменений"); setStep("app", "ok", "без изменений"); setStep("deploy", "ok", "изменений нет"); }
       else {
