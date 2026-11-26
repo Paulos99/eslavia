@@ -2582,7 +2582,15 @@
     "material": "хлопок",
     "description": "",
     "availability": "Есть в наличии",
-    "images": [],
+    "images": [
+      "/images/products/h-300g/01.webp",
+      "/images/products/h-300g/02.webp",
+      "/images/products/h-300g/03.webp",
+      "/images/products/h-300g/04.webp",
+      "/images/products/h-300g/05.webp",
+      "/images/products/h-300g/06.webp",
+      "/images/products/h-300g/07.webp"
+    ],
     "sourceUrl": "https://www.wildberries.ru/catalog/2146549294/detail.aspx"
   },
   {
