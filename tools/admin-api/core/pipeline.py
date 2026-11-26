@@ -92,7 +92,7 @@ class Pipeline:
 
     # -- validation -------------------------------------------------------
     @staticmethod
-    def clean_product(raw: dict) -> dict:
+    def clean_product(raw: dict, allowed_categories: list[str] | None = None) -> dict:
         def s(k, maxlen=300):
             v = raw.get(k)
             v = "" if v is None else re.sub(r"\s+", " ", str(v)).strip()
@@ -109,8 +109,14 @@ class Pipeline:
             raise UserError("Артикул должен содержать буквы или цифры")
         if not out["name"]:
             raise UserError("Укажите название")
-        if out["category"] not in c.CATEGORIES:
+        if not out["category"]:
+            raise UserError("Укажите категорию")
+        # Live catalog (categories.json), including categories added via Excel — not the hardcoded fallback.
+        allowed = list(allowed_categories) if allowed_categories is not None else list(c.CATEGORIES)
+        hit = next((x for x in allowed if x.lower() == out["category"].lower()), None)
+        if not hit:
             raise UserError("Выберите категорию из списка")
+        out["category"] = hit
         for k, label in (("priceWholesale", "оптовую цену"), ("priceRetail", "розничную цену")):
             try:
                 v = float(str(raw.get(k, "")).replace(" ", "").replace(",", "."))
@@ -136,7 +142,6 @@ class Pipeline:
     # -- save -------------------------------------------------------------
     def save(self, payload: dict, progress=lambda *_: None) -> dict:
         t0 = time.time()
-        fields = self.clean_product(payload.get("product") or {})
         orig_id = payload.get("id") or None
         photos = payload.get("photos") or []
         if not (3 <= len(photos) <= 8):
@@ -155,10 +160,14 @@ class Pipeline:
         tg = self.tg()
         tg_ok = None
         last_err = None
+        fields = None
         for attempt in range(3):
             repo = self.site()
             repo.load_head()
             products, cats, posts = self._state(repo)
+            # Validate against categories.json so newly confirmed categories (e.g. «Толстовки») work.
+            if fields is None:
+                fields = self.clean_product(payload.get("product") or {}, c.category_order(cats))
             by_id = {p["id"]: p for p in products}
             old = by_id.get(orig_id) if orig_id else None
             if orig_id and not old:
