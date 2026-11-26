@@ -757,6 +757,219 @@
    "oldPost": 332,
    "base": "831a34ad30505cd2b42f1441619a08b3ec0b26d1",
    "batch": "a64c978b"
+  },
+  {
+   "t": "2026-11-26T21:14:15+03:00",
+   "action": "import-edit",
+   "id": "h-300ck",
+   "article": "Х-300ЦК",
+   "name": "халат домашний с молнией Х-300ЦК",
+   "changes": [
+    {
+     "field": "priceWholesale",
+     "label": "Опт",
+     "old": "650 ₽",
+     "new": "415 ₽"
+    }
+   ],
+   "src": "Кабинет",
+   "base": "5cdc363cd1f4c50b933023686cf091fdf522200a",
+   "batch": "7c587549"
+  },
+  {
+   "t": "2026-11-26T21:14:15+03:00",
+   "action": "import-edit",
+   "id": "h-300bk",
+   "article": "Х-300БК",
+   "name": "халат домашний на молнии Х-300БК",
+   "changes": [
+    {
+     "field": "priceWholesale",
+     "label": "Опт",
+     "old": "650 ₽",
+     "new": "415 ₽"
+    }
+   ],
+   "src": "Кабинет",
+   "base": "5cdc363cd1f4c50b933023686cf091fdf522200a",
+   "batch": "7c587549"
+  },
+  {
+   "t": "2026-11-26T21:14:15+03:00",
+   "action": "import-edit",
+   "id": "h-300r",
+   "article": "Х-300Р",
+   "name": "халат домашний на молнии Х-300Р",
+   "changes": [
+    {
+     "field": "priceWholesale",
+     "label": "Опт",
+     "old": "650 ₽",
+     "new": "415 ₽"
+    }
+   ],
+   "src": "Кабинет",
+   "base": "5cdc363cd1f4c50b933023686cf091fdf522200a",
+   "batch": "7c587549"
+  },
+  {
+   "t": "2026-11-26T21:14:15+03:00",
+   "action": "import-add",
+   "id": "h-300k",
+   "article": "Х-300К",
+   "name": "халат домашний с молнией Х-300К",
+   "changes": [
+    {
+     "field": "article",
+     "label": "Артикул",
+     "old": "",
+     "new": "Х-300К"
+    },
+    {
+     "field": "name",
+     "label": "Название",
+     "old": "",
+     "new": "халат домашний с молнией Х-300К"
+    },
+    {
+     "field": "category",
+     "label": "Категория",
+     "old": "",
+     "new": "Халаты"
+    },
+    {
+     "field": "priceWholesale",
+     "label": "Опт",
+     "old": "",
+     "new": "415 ₽"
+    },
+    {
+     "field": "priceRetail",
+     "label": "Розница",
+     "old": "",
+     "new": "880 ₽"
+    },
+    {
+     "field": "sizes",
+     "label": "Размеры",
+     "old": "",
+     "new": "46-48, 50-52, 54-56, 58-60"
+    },
+    {
+     "field": "colors",
+     "label": "Цвета",
+     "old": "",
+     "new": "белый, черный, коричневый"
+    },
+    {
+     "field": "material",
+     "label": "Материал",
+     "old": "",
+     "new": "хлопок"
+    },
+    {
+     "field": "availability",
+     "label": "Наличие",
+     "old": "",
+     "new": "Есть в наличии"
+    },
+    {
+     "field": "sourceUrl",
+     "label": "Ссылка на WB",
+     "old": "",
+     "new": "https://www.wildberries.ru/catalog/2146549294/detail.aspx"
+    }
+   ],
+   "src": "Кабинет",
+   "base": "5cdc363cd1f4c50b933023686cf091fdf522200a",
+   "batch": "7c587549"
+  },
+  {
+   "t": "2026-11-26T21:14:15+03:00",
+   "action": "import-add",
+   "id": "h-300sk",
+   "article": "Х-300СК",
+   "name": "халат домашний с молнией Х-300СК",
+   "changes": [
+    {
+     "field": "article",
+     "label": "Артикул",
+     "old": "",
+     "new": "Х-300СК"
+    },
+    {
+     "field": "name",
+     "label": "Название",
+     "old": "",
+     "new": "халат домашний с молнией Х-300СК"
+    },
+    {
+     "field": "category",
+     "label": "Категория",
+     "old": "",
+     "new": "Халаты"
+    },
+    {
+     "field": "priceWholesale",
+     "label": "Опт",
+     "old": "",
+     "new": "415 ₽"
+    },
+    {
+     "field": "priceRetail",
+     "label": "Розница",
+     "old": "",
+     "new": "880 ₽"
+    },
+    {
+     "field": "sizes",
+     "label": "Размеры",
+     "old": "",
+     "new": "46-48, 50-52, 54-56, 58-60"
+    },
+    {
+     "field": "colors",
+     "label": "Цвета",
+     "old": "",
+     "new": "темно-синий, коричневый"
+    },
+    {
+     "field": "material",
+     "label": "Материал",
+     "old": "",
+     "new": "хлопок"
+    },
+    {
+     "field": "availability",
+     "label": "Наличие",
+     "old": "",
+     "new": "Есть в наличии"
+    },
+    {
+     "field": "sourceUrl",
+     "label": "Ссылка на WB",
+     "old": "",
+     "new": "https://www.wildberries.ru/catalog/2146549294/detail.aspx"
+    }
+   ],
+   "src": "Кабинет",
+   "base": "5cdc363cd1f4c50b933023686cf091fdf522200a",
+   "batch": "7c587549"
+  },
+  {
+   "t": "2026-11-26T21:14:15+03:00",
+   "action": "import",
+   "note": "изменено 3, добавлено 2",
+   "src": "Кабинет",
+   "articles": [
+    "Х-300ЦК",
+    "Х-300БК",
+    "Х-300Р",
+    "Х-300К",
+    "Х-300СК"
+   ],
+   "base": "5cdc363cd1f4c50b933023686cf091fdf522200a",
+   "batch": "7c587549"
   }
  ]
 }
