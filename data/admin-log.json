@@ -76,6 +76,527 @@
    "oldPost": 315,
    "base": "73efebdc38ddc70398390a7ddf329d436dfa3d3b",
    "batch": "34b27054"
+  },
+  {
+   "t": "2026-11-26T19:48:31+03:00",
+   "action": "import-add",
+   "id": "h-300g",
+   "article": "Х-300Г",
+   "name": "халат домашний с молнией Х-300Г",
+   "changes": [
+    {
+     "field": "article",
+     "label": "Артикул",
+     "old": "",
+     "new": "Х-300Г"
+    },
+    {
+     "field": "name",
+     "label": "Название",
+     "old": "",
+     "new": "халат домашний с молнией Х-300Г"
+    },
+    {
+     "field": "category",
+     "label": "Категория",
+     "old": "",
+     "new": "Халаты"
+    },
+    {
+     "field": "priceWholesale",
+     "label": "Опт",
+     "old": "",
+     "new": "650 ₽"
+    },
+    {
+     "field": "priceRetail",
+     "label": "Розница",
+     "old": "",
+     "new": "880 ₽"
+    },
+    {
+     "field": "sizes",
+     "label": "Размеры",
+     "old": "",
+     "new": "46-48, 50-52, 54-56, 58-60"
+    },
+    {
+     "field": "colors",
+     "label": "Цвета",
+     "old": "",
+     "new": "коричневый, белый, черный"
+    },
+    {
+     "field": "material",
+     "label": "Материал",
+     "old": "",
+     "new": "хлопок"
+    },
+    {
+     "field": "availability",
+     "label": "Наличие",
+     "old": "",
+     "new": "Есть в наличии"
+    },
+    {
+     "field": "sourceUrl",
+     "label": "Ссылка на WB",
+     "old": "",
+     "new": "https://www.wildberries.ru/catalog/2146549294/detail.aspx"
+    }
+   ],
+   "src": "Кабинет",
+   "base": "1c41f385903c8a4c42b39553377cc04cb728ca85",
+   "batch": "3701d20e"
+  },
+  {
+   "t": "2026-11-26T19:48:31+03:00",
+   "action": "import-add",
+   "id": "h-300ck",
+   "article": "Х-300ЦК",
+   "name": "халат домашний с молнией Х-300ЦК",
+   "changes": [
+    {
+     "field": "article",
+     "label": "Артикул",
+     "old": "",
+     "new": "Х-300ЦК"
+    },
+    {
+     "field": "name",
+     "label": "Название",
+     "old": "",
+     "new": "халат домашний с молнией Х-300ЦК"
+    },
+    {
+     "field": "category",
+     "label": "Категория",
+     "old": "",
+     "new": "Халаты"
+    },
+    {
+     "field": "priceWholesale",
+     "label": "Опт",
+     "old": "",
+     "new": "650 ₽"
+    },
+    {
+     "field": "priceRetail",
+     "label": "Розница",
+     "old": "",
+     "new": "880 ₽"
+    },
+    {
+     "field": "sizes",
+     "label": "Размеры",
+     "old": "",
+     "new": "46-48, 50-52, 54-56, 58-60"
+    },
+    {
+     "field": "colors",
+     "label": "Цвета",
+     "old": "",
+     "new": "белый, черный, синий"
+    },
+    {
+     "field": "material",
+     "label": "Материал",
+     "old": "",
+     "new": "хлопок"
+    },
+    {
+     "field": "availability",
+     "label": "Наличие",
+     "old": "",
+     "new": "Есть в наличии"
+    },
+    {
+     "field": "sourceUrl",
+     "label": "Ссылка на WB",
+     "old": "",
+     "new": "https://www.wildberries.ru/catalog/2146549293/detail.aspx"
+    }
+   ],
+   "src": "Кабинет",
+   "base": "1c41f385903c8a4c42b39553377cc04cb728ca85",
+   "batch": "3701d20e"
+  },
+  {
+   "t": "2026-11-26T19:48:31+03:00",
+   "action": "import-add",
+   "id": "h-300bk",
+   "article": "Х-300БК",
+   "name": "халат домашний на молнии Х-300БК",
+   "changes": [
+    {
+     "field": "article",
+     "label": "Артикул",
+     "old": "",
+     "new": "Х-300БК"
+    },
+    {
+     "field": "name",
+     "label": "Название",
+     "old": "",
+     "new": "халат домашний на молнии Х-300БК"
+    },
+    {
+     "field": "category",
+     "label": "Категория",
+     "old": "",
+     "new": "Халаты"
+    },
+    {
+     "field": "priceWholesale",
+     "label": "Опт",
+     "old": "",
+     "new": "650 ₽"
+    },
+    {
+     "field": "priceRetail",
+     "label": "Розница",
+     "old": "",
+     "new": "880 ₽"
+    },
+    {
+     "field": "sizes",
+     "label": "Размеры",
+     "old": "",
+     "new": "46-48, 50-52, 54-56, 58-60"
+    },
+    {
+     "field": "colors",
+     "label": "Цвета",
+     "old": "",
+     "new": "бордовый, коричневый"
+    },
+    {
+     "field": "material",
+     "label": "Материал",
+     "old": "",
+     "new": "хлопок"
+    },
+    {
+     "field": "availability",
+     "label": "Наличие",
+     "old": "",
+     "new": "Есть в наличии"
+    },
+    {
+     "field": "sourceUrl",
+     "label": "Ссылка на WB",
+     "old": "",
+     "new": "https://www.wildberries.ru/catalog/2145918553/detail.aspx"
+    }
+   ],
+   "src": "Кабинет",
+   "base": "1c41f385903c8a4c42b39553377cc04cb728ca85",
+   "batch": "3701d20e"
+  },
+  {
+   "t": "2026-11-26T19:48:31+03:00",
+   "action": "import-add",
+   "id": "h-300r",
+   "article": "Х-300Р",
+   "name": "халат домашний на молнии Х-300Р",
+   "changes": [
+    {
+     "field": "article",
+     "label": "Артикул",
+     "old": "",
+     "new": "Х-300Р"
+    },
+    {
+     "field": "name",
+     "label": "Название",
+     "old": "",
+     "new": "халат домашний на молнии Х-300Р"
+    },
+    {
+     "field": "category",
+     "label": "Категория",
+     "old": "",
+     "new": "Халаты"
+    },
+    {
+     "field": "priceWholesale",
+     "label": "Опт",
+     "old": "",
+     "new": "650 ₽"
+    },
+    {
+     "field": "priceRetail",
+     "label": "Розница",
+     "old": "",
+     "new": "880 ₽"
+    },
+    {
+     "field": "sizes",
+     "label": "Размеры",
+     "old": "",
+     "new": "46-48, 50-52, 54-56, 58-60"
+    },
+    {
+     "field": "colors",
+     "label": "Цвета",
+     "old": "",
+     "new": "голубой, красный, белый"
+    },
+    {
+     "field": "material",
+     "label": "Материал",
+     "old": "",
+     "new": "хлопок"
+    },
+    {
+     "field": "availability",
+     "label": "Наличие",
+     "old": "",
+     "new": "Есть в наличии"
+    },
+    {
+     "field": "sourceUrl",
+     "label": "Ссылка на WB",
+     "old": "",
+     "new": "https://www.wildberries.ru/catalog/2146290333/detail.aspx"
+    }
+   ],
+   "src": "Кабинет",
+   "base": "1c41f385903c8a4c42b39553377cc04cb728ca85",
+   "batch": "3701d20e"
+  },
+  {
+   "t": "2026-11-26T19:48:31+03:00",
+   "action": "import-add",
+   "id": "mt-103-st",
+   "article": "МТ-103-СТ",
+   "name": "Толстовка МТ-103-СТ",
+   "changes": [
+    {
+     "field": "article",
+     "label": "Артикул",
+     "old": "",
+     "new": "МТ-103-СТ"
+    },
+    {
+     "field": "name",
+     "label": "Название",
+     "old": "",
+     "new": "Толстовка МТ-103-СТ"
+    },
+    {
+     "field": "category",
+     "label": "Категория",
+     "old": "",
+     "new": "Толстовки"
+    },
+    {
+     "field": "priceWholesale",
+     "label": "Опт",
+     "old": "",
+     "new": "890 ₽"
+    },
+    {
+     "field": "priceRetail",
+     "label": "Розница",
+     "old": "",
+     "new": "1 490 ₽"
+    },
+    {
+     "field": "sizes",
+     "label": "Размеры",
+     "old": "",
+     "new": "46-48, 50-52, 54-56, 58-60"
+    },
+    {
+     "field": "colors",
+     "label": "Цвета",
+     "old": "",
+     "new": "серый"
+    },
+    {
+     "field": "material",
+     "label": "Материал",
+     "old": "",
+     "new": "флис"
+    },
+    {
+     "field": "availability",
+     "label": "Наличие",
+     "old": "",
+     "new": "Есть в наличии"
+    },
+    {
+     "field": "sourceUrl",
+     "label": "Ссылка на WB",
+     "old": "",
+     "new": "https://www.wildberries.ru/catalog/1858823437/detail.aspx"
+    }
+   ],
+   "src": "Кабинет",
+   "base": "1c41f385903c8a4c42b39553377cc04cb728ca85",
+   "batch": "3701d20e"
+  },
+  {
+   "t": "2026-11-26T19:48:31+03:00",
+   "action": "import-add",
+   "id": "mt-103-kt",
+   "article": "МТ-103-КТ",
+   "name": "Толстовка МТ-103-КТ",
+   "changes": [
+    {
+     "field": "article",
+     "label": "Артикул",
+     "old": "",
+     "new": "МТ-103-КТ"
+    },
+    {
+     "field": "name",
+     "label": "Название",
+     "old": "",
+     "new": "Толстовка МТ-103-КТ"
+    },
+    {
+     "field": "category",
+     "label": "Категория",
+     "old": "",
+     "new": "Толстовки"
+    },
+    {
+     "field": "priceWholesale",
+     "label": "Опт",
+     "old": "",
+     "new": "890 ₽"
+    },
+    {
+     "field": "priceRetail",
+     "label": "Розница",
+     "old": "",
+     "new": "1 490 ₽"
+    },
+    {
+     "field": "sizes",
+     "label": "Размеры",
+     "old": "",
+     "new": "46-48, 50-52, 54-56, 58-60"
+    },
+    {
+     "field": "colors",
+     "label": "Цвета",
+     "old": "",
+     "new": "коричневый"
+    },
+    {
+     "field": "material",
+     "label": "Материал",
+     "old": "",
+     "new": "флис"
+    },
+    {
+     "field": "availability",
+     "label": "Наличие",
+     "old": "",
+     "new": "Есть в наличии"
+    },
+    {
+     "field": "sourceUrl",
+     "label": "Ссылка на WB",
+     "old": "",
+     "new": "https://www.wildberries.ru/catalog/1904917253/detail.aspx"
+    }
+   ],
+   "src": "Кабинет",
+   "base": "1c41f385903c8a4c42b39553377cc04cb728ca85",
+   "batch": "3701d20e"
+  },
+  {
+   "t": "2026-11-26T19:48:31+03:00",
+   "action": "import-add",
+   "id": "mt-103-bt",
+   "article": "МТ-103-БТ",
+   "name": "Толстовка МТ-103-БТ",
+   "changes": [
+    {
+     "field": "article",
+     "label": "Артикул",
+     "old": "",
+     "new": "МТ-103-БТ"
+    },
+    {
+     "field": "name",
+     "label": "Название",
+     "old": "",
+     "new": "Толстовка МТ-103-БТ"
+    },
+    {
+     "field": "category",
+     "label": "Категория",
+     "old": "",
+     "new": "Толстовки"
+    },
+    {
+     "field": "priceWholesale",
+     "label": "Опт",
+     "old": "",
+     "new": "890 ₽"
+    },
+    {
+     "field": "priceRetail",
+     "label": "Розница",
+     "old": "",
+     "new": "1 490 ₽"
+    },
+    {
+     "field": "sizes",
+     "label": "Размеры",
+     "old": "",
+     "new": "46-48, 50-52, 54-56, 58-60"
+    },
+    {
+     "field": "colors",
+     "label": "Цвета",
+     "old": "",
+     "new": "бежевый"
+    },
+    {
+     "field": "material",
+     "label": "Материал",
+     "old": "",
+     "new": "флис"
+    },
+    {
+     "field": "availability",
+     "label": "Наличие",
+     "old": "",
+     "new": "Есть в наличии"
+    },
+    {
+     "field": "sourceUrl",
+     "label": "Ссылка на WB",
+     "old": "",
+     "new": "https://www.wildberries.ru/catalog/1904917252/detail.aspx"
+    }
+   ],
+   "src": "Кабинет",
+   "base": "1c41f385903c8a4c42b39553377cc04cb728ca85",
+   "batch": "3701d20e"
+  },
+  {
+   "t": "2026-11-26T19:48:31+03:00",
+   "action": "import",
+   "note": "добавлено 7, новые категории: Толстовки",
+   "src": "Кабинет",
+   "articles": [
+    "Х-300Г",
+    "Х-300ЦК",
+    "Х-300БК",
+    "Х-300Р",
+    "МТ-103-СТ",
+    "МТ-103-КТ",
+    "МТ-103-БТ"
+   ],
+   "base": "1c41f385903c8a4c42b39553377cc04cb728ca85",
+   "batch": "3701d20e"
   }
  ]
 }

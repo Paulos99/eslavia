@@ -2559,6 +2559,113 @@
     "sourceUrl": "https://www.wildberries.ru/catalog/694938167/detail.aspx"
   },
   {
+    "id": "h-300g",
+    "article": "Х-300Г",
+    "name": "халат домашний с молнией Х-300Г",
+    "category": "Халаты",
+    "categories": [
+      "Халаты"
+    ],
+    "priceRetail": 880.0,
+    "priceWholesale": 650.0,
+    "sizes": [
+      "46-48",
+      "50-52",
+      "54-56",
+      "58-60"
+    ],
+    "colors": [
+      "коричневый",
+      "белый",
+      "черный"
+    ],
+    "material": "хлопок",
+    "description": "",
+    "availability": "Есть в наличии",
+    "images": [],
+    "sourceUrl": "https://www.wildberries.ru/catalog/2146549294/detail.aspx"
+  },
+  {
+    "id": "h-300ck",
+    "article": "Х-300ЦК",
+    "name": "халат домашний с молнией Х-300ЦК",
+    "category": "Халаты",
+    "categories": [
+      "Халаты"
+    ],
+    "priceRetail": 880.0,
+    "priceWholesale": 650.0,
+    "sizes": [
+      "46-48",
+      "50-52",
+      "54-56",
+      "58-60"
+    ],
+    "colors": [
+      "белый",
+      "черный",
+      "синий"
+    ],
+    "material": "хлопок",
+    "description": "",
+    "availability": "Есть в наличии",
+    "images": [],
+    "sourceUrl": "https://www.wildberries.ru/catalog/2146549293/detail.aspx"
+  },
+  {
+    "id": "h-300bk",
+    "article": "Х-300БК",
+    "name": "халат домашний на молнии Х-300БК",
+    "category": "Халаты",
+    "categories": [
+      "Халаты"
+    ],
+    "priceRetail": 880.0,
+    "priceWholesale": 650.0,
+    "sizes": [
+      "46-48",
+      "50-52",
+      "54-56",
+      "58-60"
+    ],
+    "colors": [
+      "бордовый",
+      "коричневый"
+    ],
+    "material": "хлопок",
+    "description": "",
+    "availability": "Есть в наличии",
+    "images": [],
+    "sourceUrl": "https://www.wildberries.ru/catalog/2145918553/detail.aspx"
+  },
+  {
+    "id": "h-300r",
+    "article": "Х-300Р",
+    "name": "халат домашний на молнии Х-300Р",
+    "category": "Халаты",
+    "categories": [
+      "Халаты"
+    ],
+    "priceRetail": 880.0,
+    "priceWholesale": 650.0,
+    "sizes": [
+      "46-48",
+      "50-52",
+      "54-56",
+      "58-60"
+    ],
+    "colors": [
+      "голубой",
+      "красный",
+      "белый"
+    ],
+    "material": "хлопок",
+    "description": "",
+    "availability": "Есть в наличии",
+    "images": [],
+    "sourceUrl": "https://www.wildberries.ru/catalog/2146290333/detail.aspx"
+  },
+  {
     "id": "m-109tzh",
     "article": "М-109ТЖ",
     "name": "платье домашнее большие размеры М-109ТЖ",
@@ -3378,5 +3485,80 @@
       "/images/products/m-106zhz/05.webp"
     ],
     "sourceUrl": "https://www.wildberries.ru/catalog/993665496/detail.aspx"
+  },
+  {
+    "id": "mt-103-st",
+    "article": "МТ-103-СТ",
+    "name": "Толстовка МТ-103-СТ",
+    "category": "Толстовки",
+    "categories": [
+      "Толстовки"
+    ],
+    "priceRetail": 1490.0,
+    "priceWholesale": 890.0,
+    "sizes": [
+      "46-48",
+      "50-52",
+      "54-56",
+      "58-60"
+    ],
+    "colors": [
+      "серый"
+    ],
+    "material": "флис",
+    "description": "",
+    "availability": "Есть в наличии",
+    "images": [],
+    "sourceUrl": "https://www.wildberries.ru/catalog/1858823437/detail.aspx"
+  },
+  {
+    "id": "mt-103-kt",
+    "article": "МТ-103-КТ",
+    "name": "Толстовка МТ-103-КТ",
+    "category": "Толстовки",
+    "categories": [
+      "Толстовки"
+    ],
+    "priceRetail": 1490.0,
+    "priceWholesale": 890.0,
+    "sizes": [
+      "46-48",
+      "50-52",
+      "54-56",
+      "58-60"
+    ],
+    "colors": [
+      "коричневый"
+    ],
+    "material": "флис",
+    "description": "",
+    "availability": "Есть в наличии",
+    "images": [],
+    "sourceUrl": "https://www.wildberries.ru/catalog/1904917253/detail.aspx"
+  },
+  {
+    "id": "mt-103-bt",
+    "article": "МТ-103-БТ",
+    "name": "Толстовка МТ-103-БТ",
+    "category": "Толстовки",
+    "categories": [
+      "Толстовки"
+    ],
+    "priceRetail": 1490.0,
+    "priceWholesale": 890.0,
+    "sizes": [
+      "46-48",
+      "50-52",
+      "54-56",
+      "58-60"
+    ],
+    "colors": [
+      "бежевый"
+    ],
+    "material": "флис",
+    "description": "",
+    "availability": "Есть в наличии",
+    "images": [],
+    "sourceUrl": "https://www.wildberries.ru/catalog/1904917252/detail.aspx"
   }
 ]

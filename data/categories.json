@@ -26,7 +26,7 @@
   {
     "id": "khalaty",
     "name": "Халаты",
-    "count": 4,
+    "count": 8,
     "image": "/images/products/k-301/01.webp"
   },
   {
@@ -34,5 +34,11 @@
     "name": "Туники",
     "count": 4,
     "image": "/images/products/m-127l/01.webp"
+  },
+  {
+    "id": "tolstovki",
+    "name": "Толстовки",
+    "count": 3,
+    "image": ""
   }
 ]
