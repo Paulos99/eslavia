@@ -7,6 +7,7 @@
 
 Бэкенд: Yandex Cloud, каталог `eslavia`: функция `eslavia-admin-api`, API Gateway
 `eslavia-admin-gw`, секреты в Lockbox `eslavia-admin`. Исходники функции: tools/admin-api/.
+После правок в `tools/admin-api/` нужна новая версия функции в YC (см. `AGENT_TODO.md` в корне, если файл есть).
 
 Служебные данные: data/tg-posts.json (связь товар → сообщения в канале),
 data/price-thumbs/ (миниатюры для прайса).
